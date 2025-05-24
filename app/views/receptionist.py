@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 from app import db
 from app.models import Patient, Appointment, User
-from app.forms import PatientForm, AppointmentForm, SearchForm
+from app.forms import PatientForm, PatientRegistrationForm, AppointmentForm, SearchForm
 from app.views.auth import role_required, log_action
 
 bp = Blueprint('receptionist', __name__)
@@ -76,25 +76,40 @@ def list_patients():
 @login_required
 @role_required('receptionist')
 def register_patient():
-    """Register a new patient"""
-    form = PatientForm()
+    """Register a new patient with user account and profile"""
+    form = PatientRegistrationForm()
     if form.validate_on_submit():
         try:
+            # Create user account first
+            user = User(
+                username=form.username.data,
+                email=form.email.data,
+                role='patient'
+            )
+            user.set_password(form.password.data)
+            db.session.add(user)
+            db.session.flush()  # Get user.id before creating patient
+            
+            # Create patient profile linked to user account
             patient = Patient(
                 name=form.name.data,
                 date_of_birth=form.date_of_birth.data,
-                demographics=form.demographics.data
+                demographics=form.demographics.data,
+                user_id=user.id
             )
             db.session.add(patient)
             db.session.commit()
             
             # Log the action
-            log_action('REGISTER_PATIENT', 'Patient', patient.id, {
+            log_action('REGISTER_PATIENT_WITH_ACCOUNT', 'Patient', patient.id, {
                 'name': patient.name,
+                'username': user.username,
+                'email': user.email,
                 'date_of_birth': str(patient.date_of_birth)
             })
             
-            flash(f'Patient {patient.name} registered successfully.', 'success')
+            flash(f'Patient {patient.name} registered successfully with username: {user.username}', 'success')
+            flash(f'Login credentials - Username: {user.username}, Password: (provided to patient)', 'info')
             return redirect(url_for('receptionist.list_patients'))
             
         except Exception as e:
@@ -102,7 +117,7 @@ def register_patient():
             current_app.logger.error(f"Register patient error: {str(e)}")
             flash('Error registering patient. Please try again.', 'error')
     
-    return render_template('receptionist/patient_form.html', form=form, title='Register Patient')
+    return render_template('receptionist/patient_registration_form.html', form=form, title='Register New Patient')
 
 @bp.route('/patients/<int:patient_id>/edit', methods=['GET', 'POST'])
 @login_required

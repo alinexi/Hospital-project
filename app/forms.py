@@ -52,11 +52,34 @@ class UserForm(FlaskForm):
 
 # Receptionist Forms
 class PatientForm(FlaskForm):
-    """Form for registering/editing patients"""
+    """Form for editing existing patients (demographics only)"""
     name = StringField('Full Name', validators=[DataRequired(), Length(max=120)])
     date_of_birth = DateField('Date of Birth', validators=[DataRequired()])
     demographics = TextAreaField('Demographics (Address, Phone, Emergency Contact, etc.)')
     submit = SubmitField('Save Patient')
+
+class PatientRegistrationForm(FlaskForm):
+    """Form for registering new patients with user account"""
+    # User account fields
+    username = StringField('Username', validators=[DataRequired(), Length(min=4, max=20)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
+    
+    # Patient profile fields
+    name = StringField('Full Name', validators=[DataRequired(), Length(max=120)])
+    date_of_birth = DateField('Date of Birth', validators=[DataRequired()])
+    demographics = TextAreaField('Demographics (Address, Phone, Emergency Contact, etc.)')
+    submit = SubmitField('Register Patient')
+    
+    def validate_username(self, username):
+        user = User.query.filter_by(username=username.data).first()
+        if user:
+            raise ValidationError('Username already exists.')
+    
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user:
+            raise ValidationError('Email already registered.')
 
 class AppointmentForm(FlaskForm):
     """Form for scheduling appointments"""

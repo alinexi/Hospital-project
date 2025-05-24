@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-people"></i> User Management</h2>
+        <p class="text-muted">Manage all system users and their roles</p>
+    </div>
+</div>
+
+<!-- Search and Actions -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <form method="POST" class="d-flex">
+            {{ search_form.hidden_tag() }}
+            <div class="input-group">
+                {{ search_form.query(class="form-control", placeholder="Search users by username, email, or role...") }}
+                <button class="btn btn-outline-primary" type="submit">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('sysadmin.create_user') }}" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Create New User
+        </a>
+    </div>
+</div>
+
+<!-- Users List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-list"></i> System Users ({{ users|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if users %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.id }}</td>
+                                    <td>
+                                        <strong>{{ user.username }}</strong>
+                                        {% if user.id == current_user.id %}
+                                        <span class="badge bg-info">You</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if user.role == 'sysadmin' %}danger{% elif user.role == 'chief_doctor' %}warning{% elif user.role in ['curing_doctor', 'special_doctor'] %}success{% elif user.role == 'receptionist' %}info{% else %}primary{% endif %}">
+                                            {{ user.role.replace('_', ' ').title() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">Active</span>
+                                    </td>
+                                    <td>
+                                        {% if user.id != current_user.id %}
+                                        <a href="{{ url_for('sysadmin.edit_user', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </a>
+                                        <a href="{{ url_for('sysadmin.reset_password', user_id=user.id) }}" class="btn btn-sm btn-outline-warning">
+                                            <i class="bi bi-key"></i> Reset
+                                        </a>
+                                        {% if user.role != 'sysadmin' %}
+                                        <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete({{ user.id }}, '{{ user.username }}')">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                        {% endif %}
+                                        {% else %}
+                                        <a href="{{ url_for('sysadmin.edit_user', user_id=user.id) }}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-person-gear"></i> Edit Profile
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-people fs-1 text-muted"></i>
+                        <p class="text-muted mt-3">No users found.</p>
+                        <a href="{{ url_for('sysadmin.create_user') }}" class="btn btn-primary">
+                            <i class="bi bi-person-plus"></i> Create First User
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Statistics -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-bar-chart"></i> Role Distribution</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% set role_counts = {} %}
+                    {% for user in users %}
+                        {% set _ = role_counts.update({user.role: role_counts.get(user.role, 0) + 1}) %}
+                    {% endfor %}
+                    
+                    {% for role, count in role_counts.items() %}
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <h4 class="text-{% if role == 'sysadmin' %}danger{% elif role == 'chief_doctor' %}warning{% elif role in ['curing_doctor', 'special_doctor'] %}success{% elif role == 'receptionist' %}info{% else %}primary{% endif %}">{{ count }}</h4>
+                            <p class="text-muted">{{ role.replace('_', ' ').title() }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete user <strong id="deleteUsername"></strong>?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" id="deleteForm" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Delete User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(userId, username) {
+    document.getElementById('deleteUsername').textContent = username;
+    document.getElementById('deleteForm').action = '/sysadmin/users/' + userId + '/delete';
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %} 

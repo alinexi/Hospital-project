@@ -109,10 +109,18 @@ Hospital-project/
 
 ## 🚀 Recently Completed (Latest Session)
 
+### 🔧 **CRITICAL FIX: Patient Credential System**
+- **Fixed patient registration workflow**: Receptionists now create both User accounts AND Patient profiles
+- **New PatientRegistrationForm**: Includes username, email, password fields
+- **Complete registration template**: `patient_registration_form.html` with two-column layout
+- **Credential handoff**: Clear workflow for providing login details to patients
+- **Patient login now works**: Patients get proper User accounts to access the portal
+
 ### Templates Created:
 - **Receptionist Templates**:
   - `patients.html` - Patient search and management
-  - `patient_form.html` - Patient registration/editing
+  - `patient_form.html` - Patient registration/editing (demographics only)
+  - `patient_registration_form.html` - **NEW** Complete patient + user account creation
   - `appointments.html` - Appointment calendar
   - `appointment_form.html` - Appointment scheduling
 
@@ -122,8 +130,25 @@ Hospital-project/
   - `medical_records.html` - Limited medical record access
   - `appointment_form.html` - Appointment booking
 
+- **System Admin Templates**: **NEW**
+  - `list_users.html` - User management interface with search and role stats
+  - `user_form.html` - User creation/editing with role descriptions
+
+- **Curing Doctor Templates**: **NEW**
+  - `list_patients.html` - Assigned patient management
+  - `medical_record_form.html` - Comprehensive medical record creation/editing
+
+### 🔑 **Credential System Flow**:
+1. **Receptionist** registers patient using new registration form
+2. **User account** created automatically with role 'patient'
+3. **Patient profile** linked to user account
+4. **Login credentials** displayed to receptionist
+5. **Patient** can now log in and access their portal
+6. **Patient** can complete/update their profile after first login
+
 ### Bug Fixes:
 - Fixed CSS linter errors in dashboard templates
+- Fixed patient registration - now creates proper login accounts
 - Improved template structure and navigation
 - Enhanced form validation and error handling
 
