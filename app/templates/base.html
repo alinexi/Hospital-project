@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Medical Records System{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: #f8f9fa;
+        }
+        .main-content {
+            min-height: calc(100vh - 56px);
+        }
+        .card-header {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .role-badge {
+            font-size: 0.8em;
+        }
+        .flash-messages {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="bi bi-hospital"></i> Medical Records System
+            </a>
+            
+            {% if current_user.is_authenticated %}
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <!-- Role-based navigation -->
+                    {% if current_user.role == 'sysadmin' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('sysadmin.dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('sysadmin.list_users') }}">Users</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('sysadmin.audit_log') }}">Audit Log</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('sysadmin.manage_roles') }}">Roles</a>
+                        </li>
+                    {% elif current_user.role == 'receptionist' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('receptionist.dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('receptionist.list_patients') }}">Patients</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('receptionist.list_appointments') }}">Appointments</a>
+                        </li>
+                    {% elif current_user.role == 'chief_doctor' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('chief_doctor.dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('chief_doctor.list_medical_records') }}">Medical Records</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('chief_doctor.list_patient_assignments') }}">Assignments</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('chief_doctor.view_doctors_schedule') }}">Schedules</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('chief_doctor.generate_reports') }}">Reports</a>
+                        </li>
+                    {% elif current_user.role == 'curing_doctor' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('curing_doctor.dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('curing_doctor.list_patients') }}">My Patients</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('curing_doctor.list_appointments') }}">Appointments</a>
+                        </li>
+                    {% elif current_user.role == 'special_doctor' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('special_doctor.dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('special_doctor.list_granted_records') }}">Granted Records</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('special_doctor.list_consulting_assignments') }}">Consultations</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('special_doctor.list_appointments') }}">Appointments</a>
+                        </li>
+                    {% elif current_user.role == 'patient' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('patient.dashboard') }}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('patient.complete_profile') }}">Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('patient.list_appointments') }}">Appointments</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('patient.view_medical_records') }}">Medical Records</a>
+                        </li>
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> {{ current_user.username }}
+                            <span class="badge bg-secondary role-badge">{{ current_user.role.replace('_', ' ').title() }}</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            {% else %}
+            <div class="navbar-nav">
+                <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row">
+            {% if current_user.is_authenticated %}
+            <!-- Sidebar (optional for some roles) -->
+            {% if current_user.role in ['sysadmin', 'chief_doctor'] %}
+            <div class="col-md-2 sidebar p-3">
+                <h6 class="text-muted">Quick Actions</h6>
+                <div class="list-group list-group-flush">
+                    {% if current_user.role == 'sysadmin' %}
+                        <a href="{{ url_for('sysadmin.create_user') }}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-person-plus"></i> Create User
+                        </a>
+                    {% elif current_user.role == 'chief_doctor' %}
+                        <a href="{{ url_for('chief_doctor.assign_patient') }}" class="list-group-item list-group-item-action">
+                            <i class="bi bi-person-check"></i> Assign Patient
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-10 main-content p-4">
+            {% else %}
+            <div class="col-12 main-content p-4">
+            {% endif %}
+            {% else %}
+            <div class="col-12 main-content p-4">
+            {% endif %}
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light text-center text-muted py-3 mt-5">
+        <div class="container">
+            <p>&copy; 2024 Medical Records System. Built with Flask & Bootstrap 5.</p>
+            <p><small>DES Key: {{ config.DES_KEY.decode() }} | RSA Keys: {{ config.RSA_PRIVATE_KEY_PATH }}, {{ config.RSA_PUBLIC_KEY_PATH }}</small></p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+        
+        // Confirm delete actions
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteButtons = document.querySelectorAll('[data-confirm-delete]');
+            deleteButtons.forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    if (!confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        });
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

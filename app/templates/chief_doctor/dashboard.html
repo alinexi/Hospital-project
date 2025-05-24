@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Chief Doctor Dashboard - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-person-badge"></i> Chief Doctor Dashboard</h2>
+        <p class="text-muted">Hospital overview and patient management</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Total Patients</h5>
+                        <h3>{{ total_patients }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-people fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Doctors</h5>
+                        <h3>{{ total_doctors }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-person-badge fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Medical Records</h5>
+                        <h3>{{ total_records }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-file-medical fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Today's Appointments</h5>
+                        <h3>{{ todays_appointments }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-calendar-check fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assignment Status -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-diagram-3"></i> Patient Assignment Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h3 class="text-success">{{ assigned_patients }}</h3>
+                            <p class="text-muted">Assigned Patients</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h3 class="text-warning">{{ unassigned_patients }}</h3>
+                            <p class="text-muted">Unassigned Patients</p>
+                        </div>
+                    </div>
+                </div>
+                {% if unassigned_patients > 0 %}
+                <div class="alert alert-warning mt-3" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {{ unassigned_patients }} patients need to be assigned to doctors.
+                    <a href="{{ url_for('chief_doctor.assign_patient') }}" class="btn btn-warning btn-sm ms-2">
+                        Assign Now
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Doctor Workload -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-bar-chart"></i> Doctor Workload</h5>
+            </div>
+            <div class="card-body">
+                {% if doctor_workloads %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Doctor</th>
+                                    <th>Patients</th>
+                                    <th>Load</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for username, patient_count in doctor_workloads %}
+                                <tr>
+                                    <td>{{ username }}</td>
+                                    <td>{{ patient_count }}</td>
+                                    <td>
+                                        {% set max_load = 20 %}
+                                        {% set load_percent = (patient_count / max_load * 100) if max_load > 0 else 0 %}
+                                        {% set safe_percent = load_percent if load_percent <= 100 else 100 %}
+                                        <div class="progress" style="height: 15px;">
+                                            <div class="progress-bar {% if load_percent > 80 %}bg-danger{% elif load_percent > 60 %}bg-warning{% else %}bg-success{% endif %}" 
+                                                 style="width: {{ safe_percent }}%">
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No doctor workload data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Appointments -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-calendar-week"></i> Upcoming Appointments (Next 7 Days)</h5>
+            </div>
+            <div class="card-body">
+                {% if upcoming_appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in upcoming_appointments %}
+                                <tr>
+                                    <td>{{ appointment.datetime.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ appointment.patient.name }}</td>
+                                    <td>{{ appointment.doctor.username }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if appointment.status == 'scheduled' %}primary{% elif appointment.status == 'completed' %}success{% elif appointment.status == 'cancelled' %}danger{% else %}warning{% endif %}">
+                                            {{ appointment.status.title() }}
+                                        </span>
+                                    </td>
+                                    <td>{{ appointment.notes[:50] if appointment.notes else '' }}{% if appointment.notes and appointment.notes|length > 50 %}...{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('chief_doctor.view_doctors_schedule') }}" class="btn btn-outline-primary">
+                            View Full Schedule
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-calendar-x fs-1 text-muted"></i>
+                        <p class="text-muted mt-2">No upcoming appointments in the next 7 days.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Management Tools -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-tools"></i> Management Tools</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('chief_doctor.list_medical_records') }}" class="btn btn-outline-primary w-100 mb-2">
+                            <i class="bi bi-file-medical"></i><br>
+                            View All Records
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('chief_doctor.list_patient_assignments') }}" class="btn btn-outline-success w-100 mb-2">
+                            <i class="bi bi-diagram-3"></i><br>
+                            Patient Assignments
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('chief_doctor.view_doctors_schedule') }}" class="btn btn-outline-info w-100 mb-2">
+                            <i class="bi bi-calendar-week"></i><br>
+                            Doctors' Schedules
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('chief_doctor.generate_reports') }}" class="btn btn-outline-warning w-100 mb-2">
+                            <i class="bi bi-graph-up"></i><br>
+                            Generate Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

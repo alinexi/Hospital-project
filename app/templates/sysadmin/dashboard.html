@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}System Admin Dashboard - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-shield-lock"></i> System Administrator Dashboard</h2>
+        <p class="text-muted">System overview and management tools</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Total Users</h5>
+                        <h3>{{ total_users }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-people fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Doctors</h5>
+                        <h3>{{ user_counts.get('curing_doctor', 0) + user_counts.get('special_doctor', 0) + user_counts.get('chief_doctor', 0) }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-person-badge fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Patients</h5>
+                        <h3>{{ user_counts.get('patient', 0) }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-person-heart fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Staff</h5>
+                        <h3>{{ user_counts.get('receptionist', 0) + user_counts.get('sysadmin', 0) }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-person-workspace fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Counts by Role -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-pie-chart"></i> Users by Role</h5>
+            </div>
+            <div class="card-body">
+                {% if user_counts %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Role</th>
+                                    <th>Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for role, count in user_counts.items() %}
+                                <tr>
+                                    <td>{{ role.replace('_', ' ').title() }}</td>
+                                    <td>{{ count }}</td>
+                                    <td>
+                                        {% set percentage = (count / total_users * 100) if total_users > 0 else 0 %}
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" style="width: {{ percentage }}%">
+                                                {{ "%.1f"|format(percentage) }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No user data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Audit Logs -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-clock-history"></i> Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_logs %}
+                    <div class="list-group list-group-flush">
+                        {% for log in recent_logs %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ log.action.replace('_', ' ').title() }}</h6>
+                                <small>{{ log.timestamp.strftime('%H:%M') }}</small>
+                            </div>
+                            <p class="mb-1">User: {{ log.user.username if log.user else 'Unknown' }}</p>
+                            <small class="text-muted">{{ log.target_type }} ID: {{ log.target_id if log.target_id else 'N/A' }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('sysadmin.audit_log') }}" class="btn btn-outline-primary btn-sm">
+                            View Full Audit Log
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-clock-history fs-1 text-muted"></i>
+                        <p class="text-muted mt-2">No recent activity.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Management Tools -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-tools"></i> Management Tools</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('sysadmin.create_user') }}" class="btn btn-outline-primary w-100 mb-2">
+                            <i class="bi bi-person-plus"></i><br>
+                            Create New User
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('sysadmin.list_users') }}" class="btn btn-outline-info w-100 mb-2">
+                            <i class="bi bi-people"></i><br>
+                            Manage Users
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('sysadmin.audit_log') }}" class="btn btn-outline-warning w-100 mb-2">
+                            <i class="bi bi-journal-text"></i><br>
+                            Audit Logs
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('sysadmin.manage_roles') }}" class="btn btn-outline-success w-100 mb-2">
+                            <i class="bi bi-shield-check"></i><br>
+                            Role Management
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

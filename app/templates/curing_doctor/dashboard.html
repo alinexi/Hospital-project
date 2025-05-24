@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Curing Doctor Dashboard - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-heart-pulse"></i> Curing Doctor Dashboard</h2>
+        <p class="text-muted">Manage your assigned patients and medical records</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Assigned Patients</h5>
+                        <h3>{{ total_assigned_patients }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-people fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Today's Appointments</h5>
+                        <h3>{{ total_appointments_today }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-calendar-check fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Records Authored</h5>
+                        <h3>{{ total_records_authored }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-file-medical fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Quick Actions</h5>
+                        <a href="{{ url_for('curing_doctor.list_patients') }}" class="btn btn-light btn-sm mt-2">
+                            <i class="bi bi-people"></i> Patients
+                        </a>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-plus-circle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Appointments -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-calendar-event"></i> Today's Appointments</h5>
+            </div>
+            <div class="card-body">
+                {% if todays_appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in todays_appointments %}
+                                <tr>
+                                    <td>{{ appointment.datetime.strftime('%H:%M') }}</td>
+                                    <td>{{ appointment.patient.name }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if appointment.status == 'scheduled' %}primary{% elif appointment.status == 'completed' %}success{% elif appointment.status == 'cancelled' %}danger{% else %}warning{% endif %}">
+                                            {{ appointment.status.title() }}
+                                        </span>
+                                    </td>
+                                    <td>{{ appointment.notes[:30] if appointment.notes else '' }}{% if appointment.notes and appointment.notes|length > 30 %}...{% endif %}</td>
+                                    <td>
+                                        <a href="{{ url_for('curing_doctor.patient_records', patient_id=appointment.patient.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-file-medical"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-calendar-x fs-1 text-muted"></i>
+                        <p class="text-muted mt-2">No appointments scheduled for today.</p>
+                        <a href="{{ url_for('curing_doctor.list_appointments') }}" class="btn btn-primary">
+                            <i class="bi bi-calendar-event"></i> View All Appointments
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Assigned Patients -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-person-lines-fill"></i> Assigned Patients</h5>
+            </div>
+            <div class="card-body">
+                {% if assigned_patients %}
+                    <div class="list-group list-group-flush">
+                        {% for patient in assigned_patients[:5] %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ patient.name }}</h6>
+                                <small>ID: {{ patient.id }}</small>
+                            </div>
+                            <p class="mb-1">{{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else 'DOB not set' }}</p>
+                            <small class="text-muted">
+                                <a href="{{ url_for('curing_doctor.patient_records', patient_id=patient.id) }}" class="text-decoration-none">
+                                    <i class="bi bi-file-medical"></i> Records
+                                </a>
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('curing_doctor.list_patients') }}" class="btn btn-outline-primary btn-sm">
+                            View All Patients
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-person-x fs-1 text-muted"></i>
+                        <p class="text-muted mt-2">No patients assigned yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Medical Records -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-file-medical-fill"></i> Recent Medical Records</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_records %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Patient</th>
+                                    <th>Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in recent_records %}
+                                <tr>
+                                    <td>{{ record.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ record.patient.name }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ record.record_type.title() }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('curing_doctor.edit_medical_record', record_id=record.id) }}" class="btn btn-sm btn-outline-warning">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{{ url_for('curing_doctor.patient_records', patient_id=record.patient_id) }}" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-file-medical fs-1 text-muted"></i>
+                        <p class="text-muted mt-2">No medical records authored yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('curing_doctor.list_patients') }}" class="btn btn-outline-primary w-100 mb-2">
+                            <i class="bi bi-people"></i><br>
+                            My Patients
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('curing_doctor.list_appointments') }}" class="btn btn-outline-success w-100 mb-2">
+                            <i class="bi bi-calendar-event"></i><br>
+                            Appointments
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        {% if assigned_patients %}
+                        <a href="{{ url_for('curing_doctor.create_medical_record', patient_id=assigned_patients[0].id) }}" class="btn btn-outline-info w-100 mb-2">
+                            <i class="bi bi-file-plus"></i><br>
+                            New Record
+                        </a>
+                        {% else %}
+                        <button class="btn btn-outline-secondary w-100 mb-2" disabled>
+                            <i class="bi bi-file-plus"></i><br>
+                            No Patients Assigned
+                        </button>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('curing_doctor.list_appointments') }}?date={{ 'today' }}" class="btn btn-outline-warning w-100 mb-2">
+                            <i class="bi bi-clock"></i><br>
+                            Today's Schedule
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
