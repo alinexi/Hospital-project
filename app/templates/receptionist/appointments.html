@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Appointments - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-calendar-event"></i> Appointment Calendar</h2>
+        <p class="text-muted">View and manage appointments</p>
+    </div>
+</div>
+
+<!-- Date Filter and Actions -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <form method="GET" class="d-flex align-items-center">
+            <label for="date" class="form-label me-2 mb-0">Date:</label>
+            <input type="date" id="date" name="date" class="form-control me-2" 
+                   value="{{ selected_date.strftime('%Y-%m-%d') }}">
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('receptionist.schedule_appointment') }}" class="btn btn-primary">
+            <i class="bi bi-calendar-plus"></i> Schedule Appointment
+        </a>
+    </div>
+</div>
+
+<!-- Appointments for Selected Date -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-calendar-day"></i> Appointments for {{ selected_date.strftime('%A, %B %d, %Y') }}</h5>
+            </div>
+            <div class="card-body">
+                {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in appointments %}
+                                <tr>
+                                    <td>{{ appointment.datetime.strftime('%H:%M') }}</td>
+                                    <td>{{ appointment.patient.name }}</td>
+                                    <td>{{ appointment.doctor.username }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if appointment.status == 'scheduled' %}primary{% elif appointment.status == 'completed' %}success{% elif appointment.status == 'cancelled' %}danger{% elif appointment.status == 'rescheduled' %}warning{% else %}secondary{% endif %}">
+                                            {{ appointment.status.title() }}
+                                        </span>
+                                    </td>
+                                    <td>{{ appointment.notes[:50] if appointment.notes else '' }}{% if appointment.notes and appointment.notes|length > 50 %}...{% endif %}</td>
+                                    <td>
+                                        <a href="{{ url_for('receptionist.edit_appointment', appointment_id=appointment.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        {% if appointment.status == 'scheduled' %}
+                                        <form method="POST" action="{{ url_for('receptionist.cancel_appointment', appointment_id=appointment.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this appointment?')">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-calendar-x fs-1 text-muted"></i>
+                        <p class="text-muted mt-3">No appointments scheduled for this date.</p>
+                        <a href="{{ url_for('receptionist.schedule_appointment') }}" class="btn btn-primary">
+                            <i class="bi bi-calendar-plus"></i> Schedule First Appointment
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Date Navigation -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h6>Quick Navigation:</h6>
+                <div class="btn-group" role="group">
+                    <a href="?date={{ selected_date.strftime('%Y-%m-%d') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-chevron-left"></i> Previous Day
+                    </a>
+                    <a href="?date={{ selected_date.strftime('%Y-%m-%d') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-calendar-today"></i> Selected Date
+                    </a>
+                    <a href="?date={{ selected_date.strftime('%Y-%m-%d') }}" class="btn btn-outline-secondary btn-sm">
+                        Next Day <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

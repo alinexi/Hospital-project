@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-person-{% if patient %}gear{% else %}plus{% endif %}"></i> {{ title }}</h2>
+        <p class="text-muted">{% if patient %}Update{% else %}Enter{% endif %} patient information</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.date_of_birth.label(class="form-label") }}
+                        {{ form.date_of_birth(class="form-control" + (" is-invalid" if form.date_of_birth.errors else "")) }}
+                        {% if form.date_of_birth.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.date_of_birth.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.demographics.label(class="form-label") }}
+                        {{ form.demographics(class="form-control" + (" is-invalid" if form.demographics.errors else ""), rows="4") }}
+                        {% if form.demographics.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.demographics.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Include contact information, address, emergency contacts, etc.</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('receptionist.list_patients') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Patients
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-{% if patient %}check{% else %}plus{% endif %}"></i>
+                            {% if patient %}Update Patient{% else %}Register Patient{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}{% if patient %}Update Profile{% else %}Complete Profile{% endif %} - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-person-{% if patient %}gear{% else %}plus{% endif %}"></i> {% if patient %}Update Profile{% else %}Complete Profile{% endif %}</h2>
+        <p class="text-muted">{% if patient %}Update your personal information{% else %}Please complete your profile to access all features{% endif %}</p>
+    </div>
+</div>
+
+{% if not patient %}
+<div class="alert alert-info" role="alert">
+    <i class="bi bi-info-circle"></i>
+    <strong>Profile Required:</strong> You need to complete your profile to book appointments and access medical records.
+</div>
+{% endif %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.date_of_birth.label(class="form-label") }}
+                        {{ form.date_of_birth(class="form-control" + (" is-invalid" if form.date_of_birth.errors else "")) }}
+                        {% if form.date_of_birth.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.date_of_birth.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.demographics.label(class="form-label") }}
+                        {{ form.demographics(class="form-control" + (" is-invalid" if form.demographics.errors else ""), rows="4") }}
+                        {% if form.demographics.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.demographics.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Include your contact information, address, emergency contacts, insurance information, etc.</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('patient.dashboard') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-{% if patient %}check{% else %}plus{% endif %}"></i>
+                            {% if patient %}Update Profile{% else %}Complete Profile{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not patient %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-light" role="alert">
+            <h6><i class="bi bi-shield-check"></i> Privacy Notice:</h6>
+            <p class="mb-0">Your personal information is protected and encrypted. Only authorized medical staff can access your full medical records. You will have access to appointment summaries and basic record information.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

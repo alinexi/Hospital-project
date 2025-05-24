@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Book Appointment - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-calendar-plus"></i> Book Appointment</h2>
+        <p class="text-muted">Schedule a new appointment with a healthcare provider</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.doctor_id.label(class="form-label") }}
+                        {{ form.doctor_id(class="form-control" + (" is-invalid" if form.doctor_id.errors else "")) }}
+                        {% if form.doctor_id.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.doctor_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Select the doctor you would like to see</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.datetime.label(class="form-label") }}
+                        {{ form.datetime(class="form-control" + (" is-invalid" if form.datetime.errors else "")) }}
+                        {% if form.datetime.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.datetime.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Please choose your preferred date and time</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.notes.label(class="form-label") }}
+                        {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else ""), rows="3") }}
+                        {% if form.notes.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.notes.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Briefly describe the reason for your visit or any special requests</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('patient.list_appointments') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Appointments
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-calendar-plus"></i> Book Appointment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Booking Information -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6><i class="bi bi-clock"></i> Booking Guidelines:</h6>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> Book appointments during business hours</li>
+                    <li><i class="bi bi-check text-success"></i> Allow 24-48 hours for confirmation</li>
+                    <li><i class="bi bi-check text-success"></i> Arrive 15 minutes early</li>
+                    <li><i class="bi bi-check text-success"></i> Bring insurance cards and ID</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6><i class="bi bi-telephone"></i> Need Help?</h6>
+                <p class="text-muted mb-2">For urgent matters or assistance with booking:</p>
+                <p class="mb-1"><strong>Phone:</strong> (555) 123-4567</p>
+                <p class="mb-1"><strong>Email:</strong> appointments@hospital.com</p>
+                <p class="mb-0"><strong>Hours:</strong> Mon-Fri 8AM-5PM</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

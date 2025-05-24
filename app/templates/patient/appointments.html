@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}My Appointments - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-calendar-event"></i> My Appointments</h2>
+        <p class="text-muted">View and manage your appointments</p>
+    </div>
+</div>
+
+<!-- Action Button -->
+<div class="row mb-4">
+    <div class="col-12 text-end">
+        {% if patient %}
+        <a href="{{ url_for('patient.book_appointment') }}" class="btn btn-primary">
+            <i class="bi bi-calendar-plus"></i> Book New Appointment
+        </a>
+        {% else %}
+        <a href="{{ url_for('patient.complete_profile') }}" class="btn btn-warning">
+            <i class="bi bi-person-plus"></i> Complete Profile First
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Appointments List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-list"></i> All Appointments ({{ appointments|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Doctor</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in appointments %}
+                                <tr>
+                                    <td>{{ appointment.datetime.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ appointment.doctor.username }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if appointment.status == 'scheduled' %}primary{% elif appointment.status == 'completed' %}success{% elif appointment.status == 'cancelled' %}danger{% elif appointment.status == 'rescheduled' %}warning{% else %}secondary{% endif %}">
+                                            {{ appointment.status.title() }}
+                                        </span>
+                                    </td>
+                                    <td>{{ appointment.notes[:50] if appointment.notes else '' }}{% if appointment.notes and appointment.notes|length > 50 %}...{% endif %}</td>
+                                    <td>
+                                        {% if appointment.status == 'scheduled' and appointment.datetime.date() >= (moment().date() if moment else today) %}
+                                        <a href="{{ url_for('patient.reschedule_appointment', appointment_id=appointment.id) }}" class="btn btn-sm btn-outline-warning">
+                                            <i class="bi bi-clock"></i> Reschedule
+                                        </a>
+                                        <form method="POST" action="{{ url_for('patient.cancel_appointment', appointment_id=appointment.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this appointment?')">
+                                                <i class="bi bi-x"></i> Cancel
+                                            </button>
+                                        </form>
+                                        {% elif appointment.status == 'completed' %}
+                                        <span class="text-muted">Completed</span>
+                                        {% else %}
+                                        <span class="text-muted">{{ appointment.status.title() }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-calendar-x fs-1 text-muted"></i>
+                        <p class="text-muted mt-3">No appointments found.</p>
+                        {% if patient %}
+                        <a href="{{ url_for('patient.book_appointment') }}" class="btn btn-primary">
+                            <i class="bi bi-calendar-plus"></i> Book Your First Appointment
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('patient.complete_profile') }}" class="btn btn-warning">
+                            <i class="bi bi-person-plus"></i> Complete Profile to Book Appointments
+                        </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Status Legend -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h6><i class="bi bi-info-circle"></i> Status Legend:</h6>
+                <div class="d-flex flex-wrap gap-3">
+                    <span><span class="badge bg-primary">Scheduled</span> - Confirmed appointment</span>
+                    <span><span class="badge bg-warning">Rescheduled</span> - Time changed</span>
+                    <span><span class="badge bg-success">Completed</span> - Visit finished</span>
+                    <span><span class="badge bg-danger">Cancelled</span> - Appointment cancelled</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
