@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Doctors Schedule - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-calendar3"></i> Doctors Schedule</h2>
+        <p class="text-muted">View appointment schedules for all doctors</p>
+    </div>
+</div>
+
+<!-- Date Selection -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <form method="GET" class="d-flex align-items-center gap-3">
+            <label for="date" class="form-label mb-0">Date:</label>
+            <input type="date" id="date" name="date" class="form-control" 
+                   value="{{ selected_date.strftime('%Y-%m-%d') }}" onchange="this.form.submit()">
+        </form>
+    </div>
+    <div class="col-md-6 text-end">
+        <div class="btn-group" role="group" data-current-date="{{ selected_date.strftime('%Y-%m-%d') }}" data-base-url="{{ url_for('chief_doctor.view_doctors_schedule') }}">
+            <button onclick="navigateToDate(-1)" class="btn btn-outline-primary">
+                <i class="bi bi-chevron-left"></i> Previous Day
+            </button>
+            <a href="{{ url_for('chief_doctor.view_doctors_schedule') }}" 
+               class="btn btn-outline-primary">
+                Today
+            </a>
+            <button onclick="navigateToDate(1)" class="btn btn-outline-primary">
+                Next Day <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Display -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-calendar-day"></i> Schedule for {{ selected_date.strftime('%A, %B %d, %Y') }}</h5>
+            </div>
+            <div class="card-body">
+                {% if doctor_schedules %}
+                    {% for doctor_name, appointments in doctor_schedules.items() %}
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2">
+                            <i class="bi bi-person-badge"></i> Dr. {{ doctor_name }}
+                            <span class="badge bg-primary ms-2">{{ appointments|length }} appointments</span>
+                        </h6>
+                        
+                        {% if appointments %}
+                            <div class="row">
+                                {% for appointment in appointments %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card border-start border-4 
+                                        {% if appointment.status == 'scheduled' %}border-primary
+                                        {% elif appointment.status == 'completed' %}border-success
+                                        {% elif appointment.status == 'cancelled' %}border-danger
+                                        {% else %}border-warning{% endif %}">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="card-title mb-0">{{ appointment.datetime.strftime('%H:%M') }}</h6>
+                                                <span class="badge 
+                                                    {% if appointment.status == 'scheduled' %}bg-primary
+                                                    {% elif appointment.status == 'completed' %}bg-success
+                                                    {% elif appointment.status == 'cancelled' %}bg-danger
+                                                    {% else %}bg-warning{% endif %}">
+                                                    {{ appointment.status.title() }}
+                                                </span>
+                                            </div>
+                                            <p class="card-text mb-1">
+                                                <strong>Patient:</strong> {{ appointment.patient.name }}
+                                            </p>
+                                            <p class="card-text mb-1">
+                                                <small class="text-muted">
+                                                    ID: {{ appointment.patient.id }} | 
+                                                    Born: {{ appointment.patient.date_of_birth.strftime('%Y-%m-%d') }}
+                                                </small>
+                                            </p>
+                                            {% if appointment.notes %}
+                                            <p class="card-text">
+                                                <small class="text-muted">
+                                                    <strong>Notes:</strong> {{ appointment.notes[:50] }}
+                                                    {% if appointment.notes|length > 50 %}...{% endif %}
+                                                </small>
+                                            </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-3">
+                                <i class="bi bi-calendar-x text-muted"></i>
+                                <small class="text-muted ms-2">No appointments scheduled</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-calendar-x fs-1 text-muted"></i>
+                        <p class="text-muted mt-3">No appointments scheduled for {{ selected_date.strftime('%B %d, %Y') }}</p>
+                        <small class="text-muted">Select a different date to view schedules</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Summary -->
+{% if doctor_schedules %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-graph-up"></i> Daily Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-primary">{{ doctor_schedules|length }}</h4>
+                            <small class="text-muted">Doctors with Appointments</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-info">
+                                {% set total_appointments = 0 %}
+                                {% for appointments in doctor_schedules.values() %}
+                                    {% set total_appointments = total_appointments + appointments|length %}
+                                {% endfor %}
+                                {{ total_appointments }}
+                            </h4>
+                            <small class="text-muted">Total Appointments</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-success">
+                                {% set completed_count = 0 %}
+                                {% for appointments in doctor_schedules.values() %}
+                                    {% for appointment in appointments %}
+                                        {% if appointment.status == 'completed' %}
+                                            {% set completed_count = completed_count + 1 %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                                {{ completed_count }}
+                            </h4>
+                            <small class="text-muted">Completed</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-warning">
+                                {% set scheduled_count = 0 %}
+                                {% for appointments in doctor_schedules.values() %}
+                                    {% for appointment in appointments %}
+                                        {% if appointment.status == 'scheduled' %}
+                                            {% set scheduled_count = scheduled_count + 1 %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                                {{ scheduled_count }}
+                            </h4>
+                            <small class="text-muted">Scheduled</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function navigateToDate(offset) {
+    const btnGroup = document.querySelector('.btn-group[data-current-date]');
+    const currentDate = btnGroup.getAttribute('data-current-date');
+    const baseUrl = btnGroup.getAttribute('data-base-url');
+    
+    let date = new Date(currentDate);
+    date.setDate(date.getDate() + offset);
+    let dateString = date.toISOString().split('T')[0];
+    window.location.href = baseUrl + '?date=' + dateString;
+}
+</script>
+{% endblock %} 

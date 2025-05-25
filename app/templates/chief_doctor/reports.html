@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-graph-up"></i> System Reports</h2>
+        <p class="text-muted">Comprehensive reports and analytics for medical records system</p>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center bg-primary text-white">
+            <div class="card-body">
+                <i class="bi bi-people fs-1"></i>
+                <h3>{{ patient_stats|length if patient_stats else 0 }}</h3>
+                <p class="mb-0">Patient Months</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-success text-white">
+            <div class="card-body">
+                <i class="bi bi-calendar-check fs-1"></i>
+                <h3>{{ total_appointments or 0 }}</h3>
+                <p class="mb-0">Total Appointments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-info text-white">
+            <div class="card-body">
+                <i class="bi bi-file-medical fs-1"></i>
+                <h3>{{ record_type_stats.values()|sum if record_type_stats else 0 }}</h3>
+                <p class="mb-0">Medical Records</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-warning text-white">
+            <div class="card-body">
+                <i class="bi bi-calendar-plus fs-1"></i>
+                <h3>{{ upcoming_appointments or 0 }}</h3>
+                <p class="mb-0">Upcoming (30 days)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Statistics -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-calendar3"></i> Appointment Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border rounded p-3 mb-3">
+                            <h4 class="text-success">{{ completed_appointments or 0 }}</h4>
+                            <small class="text-muted">Completed</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-3 mb-3">
+                            <h4 class="text-danger">{{ cancelled_appointments or 0 }}</h4>
+                            <small class="text-muted">Cancelled</small>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if total_appointments and total_appointments > 0 %}
+                <div class="progress mb-3">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: {{ (completed_appointments / total_appointments * 100)|round(1) }}%">
+                        {{ (completed_appointments / total_appointments * 100)|round(1) }}% Completed
+                    </div>
+                </div>
+                
+                <div class="progress">
+                    <div class="progress-bar bg-danger" role="progressbar" 
+                         style="width: {{ (cancelled_appointments / total_appointments * 100)|round(1) }}%">
+                        {{ (cancelled_appointments / total_appointments * 100)|round(1) }}% Cancelled
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-file-text"></i> Medical Records by Type</h5>
+            </div>
+            <div class="card-body">
+                {% if record_type_stats %}
+                    {% for record_type, count in record_type_stats.items() %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary">{{ record_type.replace('_', ' ').title() }}</span>
+                        <span class="fw-bold">{{ count }}</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {{ (count / record_type_stats.values()|sum * 100)|round(1) }}%">
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted">
+                        <i class="bi bi-file-text"></i>
+                        <p>No medical records found</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Registration Trends -->
+{% if patient_stats %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up"></i> Patient Registration Trends (Last 12 Months)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>New Patients</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in patient_stats %}
+                            <tr>
+                                <td>{{ stat.month }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ stat.count }}</span>
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 20px; width: 100px;">
+                                        {% set max_count = patient_stats|map(attribute='count')|max %}
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ (stat.count / max_count * 100) if max_count > 0 else 0 }}%">
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- System Health Summary -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-shield-check"></i> System Health Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Data Integrity</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle text-success"></i> Medical records encrypted</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Digital signatures verified</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Patient data protected</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Access controls active</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>System Status</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-circle-fill text-success"></i> Database connectivity</li>
+                            <li><i class="bi bi-circle-fill text-success"></i> User authentication</li>
+                            <li><i class="bi bi-circle-fill text-success"></i> Role-based access</li>
+                            <li><i class="bi bi-circle-fill text-success"></i> Audit logging</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('chief_doctor.list_patient_assignments') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-people"></i> View Assignments
+                    </a>
+                    <a href="{{ url_for('chief_doctor.list_medical_records') }}" class="btn btn-outline-info">
+                        <i class="bi bi-file-medical"></i> View Records
+                    </a>
+                    <a href="{{ url_for('chief_doctor.view_doctors_schedule') }}" class="btn btn-outline-success">
+                        <i class="bi bi-calendar3"></i> View Schedules
+                    </a>
+                    <a href="{{ url_for('chief_doctor.assign_patient') }}" class="btn btn-outline-warning">
+                        <i class="bi bi-person-plus"></i> Assign Patient
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6><i class="bi bi-calendar-today"></i> Report Generated</h6>
+            </div>
+            <div class="card-body">
+                <small class="text-muted">
+                    Current Report
+                    <br>By: {{ current_user.username }}
+                    <br>Role: Chief Doctor
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

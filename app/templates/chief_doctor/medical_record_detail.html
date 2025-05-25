@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Medical Record #{{ record.id }} - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-file-medical"></i> Medical Record #{{ record.id }}</h2>
+        <p class="text-muted">Detailed view of medical record (read-only access)</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Patient Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="bi bi-person"></i> Patient Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Name:</strong> {{ record.patient.name }}<br>
+                        <strong>Date of Birth:</strong> {{ record.patient.date_of_birth.strftime('%Y-%m-%d') }}<br>
+                        <strong>Patient ID:</strong> {{ record.patient.id }}
+                    </div>
+                    <div class="col-md-6">
+                        {% if record.patient.demographics %}
+                            <strong>Demographics:</strong><br>
+                            <div class="small text-muted">{{ record.patient.demographics[:200] }}{% if record.patient.demographics|length > 200 %}...{% endif %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Record Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> Record Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Record Type:</strong> 
+                        <span class="badge bg-primary">{{ record.record_type.replace('_', ' ').title() }}</span><br>
+                        <strong>Created:</strong> {{ record.timestamp.strftime('%Y-%m-%d %H:%M') }}<br>
+                        <strong>Author:</strong> {{ record.author.username }} ({{ record.author.role.replace('_', ' ').title() }})
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medical Record Content -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-file-text"></i> Medical Record Content</h5>
+            </div>
+            <div class="card-body">
+                {% if decrypted_data.error %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        Error decrypting medical record: {{ decrypted_data.error }}
+                    </div>
+                {% else %}
+                    <div class="row">
+                        {% if decrypted_data.chief_complaint %}
+                        <div class="col-12 mb-3">
+                            <strong>Chief Complaint:</strong>
+                            <div class="border p-3 bg-light rounded">{{ decrypted_data.chief_complaint }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.history_present_illness %}
+                        <div class="col-12 mb-3">
+                            <strong>History of Present Illness:</strong>
+                            <div class="border p-3 bg-light rounded">{{ decrypted_data.history_present_illness }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.physical_examination %}
+                        <div class="col-12 mb-3">
+                            <strong>Physical Examination:</strong>
+                            <div class="border p-3 bg-light rounded">{{ decrypted_data.physical_examination }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.diagnosis %}
+                        <div class="col-12 mb-3">
+                            <strong>Diagnosis:</strong>
+                            <div class="border p-3 bg-light rounded">{{ decrypted_data.diagnosis }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.treatment_plan %}
+                        <div class="col-12 mb-3">
+                            <strong>Treatment Plan:</strong>
+                            <div class="border p-3 bg-light rounded">{{ decrypted_data.treatment_plan }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.medications %}
+                        <div class="col-12 mb-3">
+                            <strong>Medications:</strong>
+                            <div class="border p-3 bg-light rounded">{{ decrypted_data.medications }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.lab_results %}
+                        <div class="col-12 mb-3">
+                            <strong>Lab Results:</strong>
+                            <div class="border p-3 bg-light rounded">{{ decrypted_data.lab_results }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.notes %}
+                        <div class="col-12 mb-3">
+                            <strong>Additional Notes:</strong>
+                            <div class="border p-3 bg-light rounded">{{ decrypted_data.notes }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6><i class="bi bi-gear"></i> Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('chief_doctor.list_medical_records') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-left"></i> Back to Records
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Info -->
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-shield-check"></i> Security Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="small text-muted">
+                    <i class="bi bi-lock"></i> This medical record is encrypted and digitally signed.<br><br>
+                    <i class="bi bi-eye"></i> As Chief Doctor, you have read-only access to all medical records for administrative oversight.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

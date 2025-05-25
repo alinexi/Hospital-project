@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title or 'Assign Patient' }} - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-person-plus"></i> {{ title or 'Assign Patient to Doctor' }}</h2>
+        <p class="text-muted">Assign a patient to a curing doctor for ongoing care</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>{{ title or 'Patient Assignment' }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.patient_id.label(class="form-label") }}
+                        {{ form.patient_id(class="form-select") }}
+                        {% for error in form.patient_id.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.doctor_id.label(class="form-label") }}
+                        {{ form.doctor_id(class="form-select") }}
+                        {% for error in form.doctor_id.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if assignment %}
+                    <div class="alert alert-info">
+                        <strong>Current Assignment:</strong> 
+                        {{ assignment.patient.name }} is currently assigned to {{ assignment.assigned_doctor.username }}
+                        <br><small>Assigned on: {{ assignment.assigned_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('chief_doctor.list_patient_assignments') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-info-circle"></i> Assignment Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check-circle text-success"></i> Each patient can only be assigned to one curing doctor</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Curing doctors can manage multiple patients</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Assignments can be changed or removed later</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Special doctors can be granted access separately</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

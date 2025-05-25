@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Medical Records - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-file-medical"></i> All Medical Records</h2>
+        <p class="text-muted">View all medical records in the system (read-only access)</p>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <form method="POST" class="d-flex">
+            {{ search_form.hidden_tag() }}
+            <div class="input-group">
+                {{ search_form.query(class="form-control", placeholder="Search by patient name, doctor, or record type...") }}
+                <button class="btn btn-outline-primary" type="submit">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Medical Records List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-list"></i> Medical Records 
+                    {% if medical_records %}({{ medical_records.total }} total){% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if medical_records and medical_records.items %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Patient</th>
+                                    <th>Record Type</th>
+                                    <th>Author</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in medical_records.items %}
+                                <tr>
+                                    <td>{{ record.id }}</td>
+                                    <td>
+                                        <strong>{{ record.patient.name }}</strong>
+                                        <br><small class="text-muted">Born: {{ record.patient.date_of_birth.strftime('%Y-%m-%d') }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ record.record_type.replace('_', ' ').title() }}</span>
+                                    </td>
+                                    <td>
+                                        {{ record.author.username }}
+                                        <br><small class="text-muted">{{ record.author.role.replace('_', ' ').title() }}</small>
+                                    </td>
+                                    <td>
+                                        {{ record.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                                        <br><small class="text-muted">{{ record.timestamp.strftime('%A') }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('chief_doctor.view_medical_record', record_id=record.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if medical_records.pages > 1 %}
+                    <nav aria-label="Medical records pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if medical_records.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('chief_doctor.list_medical_records', page=medical_records.prev_num) }}">Previous</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for page_num in medical_records.iter_pages() %}
+                                {% if page_num %}
+                                    {% if page_num != medical_records.page %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('chief_doctor.list_medical_records', page=page_num) }}">{{ page_num }}</a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ page_num }}</span>
+                                        </li>
+                                    {% endif %}
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if medical_records.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('chief_doctor.list_medical_records', page=medical_records.next_num) }}">Next</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-file-medical fs-1 text-muted"></i>
+                        <p class="text-muted mt-3">No medical records found.</p>
+                        {% if search_form.query.data %}
+                            <a href="{{ url_for('chief_doctor.list_medical_records') }}" class="btn btn-outline-primary">
+                                <i class="bi bi-arrow-left"></i> Show All Records
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
