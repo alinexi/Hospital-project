@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, PasswordField, SelectField, DateField, DateTimeLocalField, IntegerField, SubmitField
-from wtforms.validators import DataRequired, Email, Length, ValidationError, Optional
+from wtforms.validators import DataRequired, Length, ValidationError, Optional
 from app.models import User, Patient
+import re
 
 class LoginForm(FlaskForm):
     """Login form for authentication"""
@@ -12,7 +13,7 @@ class LoginForm(FlaskForm):
 class RegistrationForm(FlaskForm):
     """Registration form for new users"""
     username = StringField('Username', validators=[DataRequired(), Length(min=4, max=20)])
-    email = StringField('Email', validators=[DataRequired(), Email()])
+    email = StringField('Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
     role = SelectField('Role', choices=[
         ('patient', 'Patient'),
@@ -30,6 +31,10 @@ class RegistrationForm(FlaskForm):
             raise ValidationError('Username already exists.')
     
     def validate_email(self, email):
+        """Custom email validation using regex"""
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email.data):
+            raise ValidationError('Please enter a valid email address.')
         user = User.query.filter_by(email=email.data).first()
         if user:
             raise ValidationError('Email already registered.')
@@ -38,7 +43,7 @@ class RegistrationForm(FlaskForm):
 class UserForm(FlaskForm):
     """Form for creating/editing users"""
     username = StringField('Username', validators=[DataRequired(), Length(min=4, max=20)])
-    email = StringField('Email', validators=[DataRequired(), Email()])
+    email = StringField('Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[Optional(), Length(min=6)])
     role = SelectField('Role', choices=[
         ('patient', 'Patient'),
@@ -49,6 +54,12 @@ class UserForm(FlaskForm):
         ('sysadmin', 'System Administrator')
     ], validators=[DataRequired()])
     submit = SubmitField('Save User')
+    
+    def validate_email(self, email):
+        """Custom email validation using regex"""
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email.data):
+            raise ValidationError('Please enter a valid email address.')
 
 # Receptionist Forms
 class PatientForm(FlaskForm):
@@ -62,7 +73,7 @@ class PatientRegistrationForm(FlaskForm):
     """Form for registering new patients with user account"""
     # User account fields
     username = StringField('Username', validators=[DataRequired(), Length(min=4, max=20)])
-    email = StringField('Email', validators=[DataRequired(), Email()])
+    email = StringField('Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
     
     # Patient profile fields
@@ -77,6 +88,10 @@ class PatientRegistrationForm(FlaskForm):
             raise ValidationError('Username already exists.')
     
     def validate_email(self, email):
+        """Custom email validation using regex"""
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email.data):
+            raise ValidationError('Please enter a valid email address.')
         user = User.query.filter_by(email=email.data).first()
         if user:
             raise ValidationError('Email already registered.')

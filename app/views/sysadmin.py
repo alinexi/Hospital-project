@@ -51,11 +51,11 @@ def list_users():
                 )
             ).all()
         
-        return render_template('sysadmin/users.html', users=users, search_form=search_form)
+        return render_template('sysadmin/list_users.html', users=users, search_form=search_form)
     except Exception as e:
         current_app.logger.error(f"List users error: {str(e)}")
         flash('Error loading users.', 'error')
-        return render_template('sysadmin/users.html', users=[], search_form=SearchForm())
+        return render_template('sysadmin/list_users.html', users=[], search_form=SearchForm())
 
 @bp.route('/users/create', methods=['GET', 'POST'])
 @login_required
