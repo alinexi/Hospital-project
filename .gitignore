@@ -17,8 +17,6 @@ instance/
 *.env
 
 # Encryption keys
-*.pem
-*.key
 
 # Logs
 *.log
