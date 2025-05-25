@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 from app import db
-from app.models import Patient, Appointment, MedicalRecord, AccessGrant, PatientAssignment
+from app.models import Patient, Appointment, MedicalRecord, AccessGrant, PatientAssignment, User
 from app.forms import MedicalRecordForm, AccessGrantForm, SearchForm
 from app.views.auth import role_required, log_action
 from app.utils.encryption import encrypt_medical_record, decrypt_medical_record
@@ -412,6 +412,129 @@ def list_appointments():
         return render_template('curing_doctor/appointments.html',
                              appointments=[],
                              selected_date=None if show_all else datetime.now().date())
+
+@bp.route('/medical-records')
+@login_required
+@role_required('curing_doctor')
+def list_medical_records():
+    """List all medical records authored by this doctor"""
+    try:
+        search_form = SearchForm()
+        page = request.args.get('page', 1, type=int)
+        per_page = 20
+        
+        # Base query for records authored by this doctor
+        query = db.session.query(MedicalRecord).join(Patient).filter(
+            MedicalRecord.author_id == current_user.id
+        )
+        
+        # Apply search filter if provided
+        search_term = request.args.get('search', '')
+        if search_term:
+            query = query.filter(
+                db.or_(
+                    Patient.name.contains(search_term),
+                    MedicalRecord.record_type.contains(search_term)
+                )
+            )
+        
+        # Paginate results
+        medical_records = query.order_by(MedicalRecord.timestamp.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        return render_template('curing_doctor/medical_records.html',
+                             medical_records=medical_records,
+                             search_form=search_form,
+                             search_term=search_term)
+    except Exception as e:
+        current_app.logger.error(f"List medical records error: {str(e)}")
+        flash('Error loading medical records.', 'error')
+        return render_template('curing_doctor/medical_records.html',
+                             medical_records=None,
+                             search_form=SearchForm(),
+                             search_term='')
+
+@bp.route('/access-grants')
+@login_required
+@role_required('curing_doctor')
+def list_access_grants():
+    """List all access grants made by this doctor"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = 20
+        
+        # Get all access grants made by this doctor
+        access_grants = db.session.query(AccessGrant).join(
+            MedicalRecord, AccessGrant.record_id == MedicalRecord.id
+        ).join(
+            Patient, MedicalRecord.patient_id == Patient.id
+        ).join(
+            User, AccessGrant.granted_to_user_id == User.id
+        ).filter(
+            AccessGrant.granted_by_user_id == current_user.id
+        ).order_by(AccessGrant.granted_date.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        # Get summary statistics
+        total_grants = AccessGrant.query.filter_by(granted_by_user_id=current_user.id).count()
+        unique_records = db.session.query(AccessGrant.record_id).filter_by(
+            granted_by_user_id=current_user.id
+        ).distinct().count()
+        unique_doctors = db.session.query(AccessGrant.granted_to_user_id).filter_by(
+            granted_by_user_id=current_user.id
+        ).distinct().count()
+        
+        return render_template('curing_doctor/access_grants.html',
+                             access_grants=access_grants,
+                             total_grants=total_grants,
+                             unique_records=unique_records,
+                             unique_doctors=unique_doctors)
+    except Exception as e:
+        current_app.logger.error(f"List access grants error: {str(e)}")
+        flash('Error loading access grants.', 'error')
+        return render_template('curing_doctor/access_grants.html',
+                             access_grants=None,
+                             total_grants=0,
+                             unique_records=0,
+                             unique_doctors=0)
+
+@bp.route('/access-grants/<int:grant_id>/revoke', methods=['POST'])
+@login_required
+@role_required('curing_doctor')
+def revoke_access_grant(grant_id):
+    """Revoke an access grant"""
+    try:
+        access_grant = AccessGrant.query.get_or_404(grant_id)
+        
+        # Check if this doctor granted the access
+        if access_grant.granted_by_user_id != current_user.id:
+            flash('Access denied. You can only revoke access grants you made.', 'error')
+            return redirect(url_for('curing_doctor.list_access_grants'))
+        
+        # Get info for logging before deletion
+        record_id = access_grant.record_id
+        granted_to_user_id = access_grant.granted_to_user_id
+        
+        # Delete the access grant
+        db.session.delete(access_grant)
+        db.session.commit()
+        
+        # Log the action
+        log_action('REVOKE_RECORD_ACCESS', 'AccessGrant', grant_id, {
+            'record_id': record_id,
+            'granted_to_user_id': granted_to_user_id
+        })
+        
+        flash('Access grant revoked successfully.', 'success')
+        return redirect(url_for('curing_doctor.list_access_grants'))
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Revoke access grant error: {str(e)}")
+        flash('Error revoking access grant. Please try again.', 'error')
+        return redirect(url_for('curing_doctor.list_access_grants'))
 
 # TODO: Students can extend this section with additional curing doctor functionality:
 # - Treatment plan templates

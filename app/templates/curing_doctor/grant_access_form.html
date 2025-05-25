@@ -47,6 +47,7 @@
             <div class="card-body">
                 <form method="POST">
                     {{ form.hidden_tag() }}
+                    {{ form.record_id() }}
                     
                     <div class="mb-3">
                         {{ form.special_doctor_id.label(class="form-label") }}

@@ -230,22 +230,34 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <a href="{{ url_for('curing_doctor.list_patients') }}" class="btn btn-outline-primary w-100 mb-2">
                             <i class="bi bi-people"></i><br>
                             My Patients
                         </a>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <a href="{{ url_for('curing_doctor.list_appointments') }}" class="btn btn-outline-success w-100 mb-2">
                             <i class="bi bi-calendar-event"></i><br>
                             Appointments
                         </a>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <a href="{{ url_for('curing_doctor.list_medical_records') }}" class="btn btn-outline-info w-100 mb-2">
+                            <i class="bi bi-file-medical"></i><br>
+                            My Records
+                        </a>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="{{ url_for('curing_doctor.list_access_grants') }}" class="btn btn-outline-warning w-100 mb-2">
+                            <i class="bi bi-shield-check"></i><br>
+                            Access Grants
+                        </a>
+                    </div>
+                    <div class="col-md-2">
                         {% if assigned_patients %}
                         <div class="dropdown">
-                            <button class="btn btn-outline-info w-100 mb-2 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <button class="btn btn-outline-danger w-100 mb-2 dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-file-plus"></i><br>
                                 New Record
                             </button>
@@ -264,8 +276,8 @@
                         </button>
                         {% endif %}
                     </div>
-                    <div class="col-md-3">
-                        <a href="{{ url_for('curing_doctor.list_appointments') }}?date={{ 'today' }}" class="btn btn-outline-warning w-100 mb-2">
+                    <div class="col-md-2">
+                        <a href="{{ url_for('curing_doctor.list_appointments') }}?date={{ 'today' }}" class="btn btn-outline-dark w-100 mb-2">
                             <i class="bi bi-clock"></i><br>
                             Today's Schedule
                         </a>

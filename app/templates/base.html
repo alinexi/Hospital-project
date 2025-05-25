@@ -102,6 +102,12 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('curing_doctor.list_appointments') }}?show_all=true">Appointments</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('curing_doctor.list_medical_records') }}">My Records</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('curing_doctor.list_access_grants') }}">Access Grants</a>
+                        </li>
                     {% elif current_user.role == 'special_doctor' %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('special_doctor.dashboard') }}">Dashboard</a>

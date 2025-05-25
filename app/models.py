@@ -93,8 +93,10 @@ class AccessGrant(db.Model):
     granted_by_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     granted_date = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationship to granting user
-    granted_by = db.relationship('User', foreign_keys=[granted_by_user_id], backref='granted_accesses')
+    # Relationships
+    medical_record = db.relationship('MedicalRecord')
+    granted_to_user = db.relationship('User', foreign_keys=[granted_to_user_id])
+    granted_by_user = db.relationship('User', foreign_keys=[granted_by_user_id])
     
     def __repr__(self):
         return f'<AccessGrant Record:{self.record_id} To:{self.granted_to_user_id}>'

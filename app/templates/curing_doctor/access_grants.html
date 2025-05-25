@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}Access Grants Management - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-shield-check"></i> Access Grants Management</h2>
+        <p class="text-muted">Manage access grants to special doctors for your medical records</p>
+    </div>
+</div>
+
+<!-- Statistics Summary -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-lock fs-1 text-primary"></i>
+                <h3 class="mt-2">{{ total_grants }}</h3>
+                <small class="text-muted">Total Access Grants</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <i class="bi bi-file-medical fs-1 text-info"></i>
+                <h3 class="mt-2">{{ unique_records }}</h3>
+                <small class="text-muted">Records with Grants</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <i class="bi bi-people fs-1 text-success"></i>
+                <h3 class="mt-2">{{ unique_doctors }}</h3>
+                <small class="text-muted">Special Doctors</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Access Grants List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-list-ul"></i> Active Access Grants</h5>
+                <small class="text-muted">
+                    {% if access_grants %}
+                        Page {{ access_grants.page }} of {{ access_grants.pages }} 
+                        ({{ access_grants.total }} total)
+                    {% endif %}
+                </small>
+            </div>
+            <div class="card-body">
+                {% if access_grants and access_grants.items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Grant Date</th>
+                                    <th>Patient</th>
+                                    <th>Record Info</th>
+                                    <th>Special Doctor</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for grant in access_grants.items %}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong>{{ grant.granted_date.strftime('%Y-%m-%d') }}</strong>
+                                            <br><small class="text-muted">{{ grant.granted_date.strftime('%H:%M') }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ grant.medical_record.patient.name }}</strong>
+                                            <br><small class="text-muted">ID: {{ grant.medical_record.patient.id }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <span class="badge 
+                                                {% if grant.medical_record.record_type == 'consultation' %}bg-primary
+                                                {% elif grant.medical_record.record_type == 'follow_up' %}bg-info
+                                                {% elif grant.medical_record.record_type == 'emergency' %}bg-danger
+                                                {% elif grant.medical_record.record_type == 'routine_checkup' %}bg-success
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ grant.medical_record.record_type.replace('_', ' ').title() }}
+                                            </span>
+                                            <br><small class="text-muted">
+                                                Created: {{ grant.medical_record.timestamp.strftime('%Y-%m-%d') }}
+                                            </small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ grant.granted_to_user.username }}</strong>
+                                            <br><small class="text-muted">{{ grant.granted_to_user.role }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-vertical btn-group-sm" role="group">
+                                            <a href="{{ url_for('curing_doctor.patient_records', patient_id=grant.medical_record.patient.id) }}" 
+                                               class="btn btn-outline-info btn-sm">
+                                                <i class="bi bi-eye"></i> View Record
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                    data-bs-toggle="modal" data-bs-target="#revokeModal"
+                                                    data-grant-id="{{ grant.id }}"
+                                                    data-patient-name="{{ grant.medical_record.patient.name }}"
+                                                    data-doctor-name="{{ grant.granted_to_user.username }}">
+                                                <i class="bi bi-x-circle"></i> Revoke Access
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if access_grants.pages > 1 %}
+                    <nav aria-label="Access grants pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if access_grants.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('curing_doctor.list_access_grants', page=access_grants.prev_num) }}">
+                                        Previous
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for page_num in access_grants.iter_pages() %}
+                                {% if page_num %}
+                                    {% if page_num != access_grants.page %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('curing_doctor.list_access_grants', page=page_num) }}">
+                                                {{ page_num }}
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ page_num }}</span>
+                                        </li>
+                                    {% endif %}
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if access_grants.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('curing_doctor.list_access_grants', page=access_grants.next_num) }}">
+                                        Next
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-shield-x fs-1 text-muted"></i>
+                        <p class="text-muted mt-3">No access grants found</p>
+                        <p class="text-muted">You haven't granted access to any special doctors yet.</p>
+                        <a href="{{ url_for('curing_doctor.list_medical_records') }}" class="btn btn-primary">
+                            <i class="bi bi-share"></i> Grant Access to Records
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grant Access Quick Start -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h6><i class="bi bi-info-circle"></i> How to Grant Access</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">To grant access to a medical record:</p>
+                <ol class="mb-3">
+                    <li>Go to your <a href="{{ url_for('curing_doctor.list_medical_records') }}">Medical Records</a> list</li>
+                    <li>Click "Grant Access" button for the record you want to share</li>
+                    <li>Select the special doctor to grant access to</li>
+                    <li>The access will appear in this list for management</li>
+                </ol>
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-lightbulb"></i>
+                    <strong>Tip:</strong> You can revoke access at any time by clicking "Revoke Access" in this list.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-lightning-charge"></i> Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('curing_doctor.list_medical_records') }}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-file-medical"></i> My Records
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('curing_doctor.list_patients') }}" class="btn btn-outline-info w-100">
+                            <i class="bi bi-people"></i> My Patients
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('curing_doctor.list_appointments') }}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-calendar"></i> Appointments
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('curing_doctor.dashboard') }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-house"></i> Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revoke Access Confirmation Modal -->
+<div class="modal fade" id="revokeModal" tabindex="-1" aria-labelledby="revokeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="revokeModalLabel">
+                    <i class="bi bi-exclamation-triangle"></i> Confirm Access Revocation
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to revoke access to this medical record?</p>
+                <div class="alert alert-warning">
+                    <strong>Patient:</strong> <span id="revokePatientName"></span><br>
+                    <strong>Special Doctor:</strong> <span id="revokeDoctorName"></span>
+                </div>
+                <p class="text-warning"><strong>The special doctor will no longer be able to view this record.</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="revokeForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-x-circle"></i> Revoke Access
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle revoke confirmation using data attributes
+    const revokeModal = document.getElementById('revokeModal');
+    if (revokeModal) {
+        revokeModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const grantId = button.getAttribute('data-grant-id');
+            const patientName = button.getAttribute('data-patient-name');
+            const doctorName = button.getAttribute('data-doctor-name');
+            
+            document.getElementById('revokePatientName').textContent = patientName;
+            document.getElementById('revokeDoctorName').textContent = doctorName;
+            document.getElementById('revokeForm').action = '{{ url_for("curing_doctor.revoke_access_grant", grant_id=0) }}'.replace('0', grantId);
+        });
+    }
+});
+</script>
+{% endblock %} 
