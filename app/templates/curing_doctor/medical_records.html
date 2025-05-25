@@ -28,9 +28,32 @@
         </form>
     </div>
     <div class="col-md-4 text-end">
-        <a href="{{ url_for('curing_doctor.list_patients') }}" class="btn btn-success">
-            <i class="bi bi-plus"></i> Create New Record
-        </a>
+        {% if assigned_patients %}
+        <div class="dropdown">
+            <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-file-plus"></i> Create New Record
+            </button>
+            <ul class="dropdown-menu">
+                {% for patient in assigned_patients[:10] %}
+                <li><a class="dropdown-item" href="{{ url_for('curing_doctor.create_medical_record', patient_id=patient.id) }}">
+                    <i class="bi bi-person"></i> {{ patient.name }}
+                    <br><small class="text-muted">ID: {{ patient.id }}</small>
+                </a></li>
+                {% endfor %}
+                {% if assigned_patients|length > 10 %}
+                <li><hr class="dropdown-divider"></li>
+                <li><span class="dropdown-item-text text-muted">And {{ assigned_patients|length - 10 }} more patients...</span></li>
+                <li><a class="dropdown-item" href="{{ url_for('curing_doctor.list_patients') }}">
+                    <i class="bi bi-people"></i> View All Patients
+                </a></li>
+                {% endif %}
+            </ul>
+        </div>
+        {% else %}
+        <button class="btn btn-outline-secondary" disabled>
+            <i class="bi bi-file-plus"></i> No Patients Assigned
+        </button>
+        {% endif %}
     </div>
 </div>
 
@@ -183,14 +206,36 @@
                         <i class="bi bi-file-medical fs-1 text-muted"></i>
                         {% if search_term %}
                             <p class="text-muted mt-3">No medical records found matching "{{ search_term }}"</p>
-                            <a href="{{ url_for('curing_doctor.list_medical_records') }}" class="btn btn-outline-primary">
-                                View All Records
-                            </a>
+                            <div class="d-flex gap-2 justify-content-center">
+                                <a href="{{ url_for('curing_doctor.list_medical_records') }}" class="btn btn-outline-primary">
+                                    View All Records
+                                </a>
+                                {% if assigned_patients %}
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-plus"></i> Create New Record
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        {% for patient in assigned_patients[:5] %}
+                                        <li><a class="dropdown-item" href="{{ url_for('curing_doctor.create_medical_record', patient_id=patient.id) }}">
+                                            <i class="bi bi-person"></i> {{ patient.name }}
+                                        </a></li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                            </div>
                         {% else %}
                             <p class="text-muted mt-3">No medical records found</p>
+                            {% if assigned_patients %}
                             <p class="text-muted">You haven't authored any medical records yet.</p>
+                            <p class="text-muted"><strong>To create your first record:</strong> Use the "Create New Record" dropdown above to select a patient.</p>
+                            {% else %}
+                            <p class="text-muted">You haven't authored any medical records yet.</p>
+                            <p class="text-muted">You need to have patients assigned to you before you can create medical records.</p>
+                            {% endif %}
                             <a href="{{ url_for('curing_doctor.list_patients') }}" class="btn btn-primary">
-                                <i class="bi bi-plus"></i> Create Your First Record
+                                <i class="bi bi-people"></i> View My Patients
                             </a>
                         {% endif %}
                     </div>

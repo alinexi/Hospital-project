@@ -443,17 +443,24 @@ def list_medical_records():
             page=page, per_page=per_page, error_out=False
         )
         
+        # Get assigned patients for the dropdown
+        assigned_patients = db.session.query(Patient).join(PatientAssignment).filter(
+            PatientAssignment.doctor_id == current_user.id
+        ).order_by(Patient.name).all()
+        
         return render_template('curing_doctor/medical_records.html',
                              medical_records=medical_records,
                              search_form=search_form,
-                             search_term=search_term)
+                             search_term=search_term,
+                             assigned_patients=assigned_patients)
     except Exception as e:
         current_app.logger.error(f"List medical records error: {str(e)}")
         flash('Error loading medical records.', 'error')
         return render_template('curing_doctor/medical_records.html',
                              medical_records=None,
                              search_form=SearchForm(),
-                             search_term='')
+                             search_term='',
+                             assigned_patients=[])
 
 @bp.route('/access-grants')
 @login_required
