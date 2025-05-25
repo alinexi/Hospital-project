@@ -46,6 +46,7 @@
                                     <th>ID</th>
                                     <th>Name</th>
                                     <th>Date of Birth</th>
+                                    <th>User Account</th>
                                     <th>Demographics</th>
                                     <th>Actions</th>
                                 </tr>
@@ -54,9 +55,27 @@
                                 {% for patient in patients %}
                                 <tr>
                                     <td>{{ patient.id }}</td>
-                                    <td>{{ patient.name }}</td>
+                                    <td>
+                                        <strong>{{ patient.name }}</strong>
+                                    </td>
                                     <td>{{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else 'Not set' }}</td>
-                                    <td>{{ patient.demographics[:50] if patient.demographics else '' }}{% if patient.demographics and patient.demographics|length > 50 %}...{% endif %}</td>
+                                    <td>
+                                        {% if patient.user_id and patient.user %}
+                                            <div class="badge bg-success">Has Account</div>
+                                            <br><small class="text-muted">
+                                                <strong>{{ patient.user.username }}</strong><br>
+                                                {{ patient.user.email }}
+                                            </small>
+                                        {% else %}
+                                            <div class="badge bg-secondary">No Account</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 200px;">
+                                            {{ patient.demographics[:50] if patient.demographics else 'No demographics' }}
+                                            {% if patient.demographics and patient.demographics|length > 50 %}...{% endif %}
+                                        </div>
+                                    </td>
                                     <td>
                                         <a href="{{ url_for('receptionist.edit_patient', patient_id=patient.id) }}" class="btn btn-sm btn-outline-primary">
                                             <i class="bi bi-pencil"></i> Edit

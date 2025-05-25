@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask_login import UserMixin
+from werkzeug.security import generate_password_hash
 from app import db, login_manager
 
 @login_manager.user_loader
@@ -19,6 +20,10 @@ class User(UserMixin, db.Model):
     assigned_patients = db.relationship('PatientAssignment', foreign_keys='PatientAssignment.doctor_id', backref='assigned_doctor', lazy='dynamic')
     access_grants = db.relationship('AccessGrant', foreign_keys='AccessGrant.granted_to_user_id', backref='granted_user', lazy='dynamic')
     
+    def set_password(self, password):
+        """Set password hash for the user"""
+        self.password_hash = generate_password_hash(password)
+    
     def __repr__(self):
         return f'<User {self.username}>'
 
@@ -31,6 +36,7 @@ class Patient(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Link to User if patient has account
     
     # Relationships
+    user = db.relationship('User', backref='patient_profile')
     appointments = db.relationship('Appointment', backref='patient', lazy='dynamic', cascade='all, delete-orphan')
     medical_records = db.relationship('MedicalRecord', backref='patient', lazy='dynamic', cascade='all, delete-orphan')
     assignments = db.relationship('PatientAssignment', backref='patient', lazy='dynamic', cascade='all, delete-orphan')
