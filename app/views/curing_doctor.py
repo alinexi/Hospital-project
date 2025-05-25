@@ -368,35 +368,50 @@ def grant_access(record_id):
 def list_appointments():
     """View and manage own appointment schedule"""
     try:
-        # Get date filter from query params
-        date_str = request.args.get('date')
-        if date_str:
-            try:
-                filter_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            except ValueError:
-                filter_date = datetime.now().date()
-        else:
-            filter_date = datetime.now().date()
+        # Check if show_all parameter is present
+        show_all = request.args.get('show_all', '').lower() == 'true'
         
-        # Get appointments for the selected date
-        next_day = filter_date + timedelta(days=1)
-        appointments = Appointment.query.filter(
-            db.and_(
-                Appointment.doctor_id == current_user.id,
-                Appointment.datetime >= filter_date,
-                Appointment.datetime < next_day
-            )
-        ).order_by(Appointment.datetime).all()
+        if show_all:
+            # Show all appointments for this doctor
+            appointments = Appointment.query.filter(
+                Appointment.doctor_id == current_user.id
+            ).order_by(Appointment.datetime.desc()).all()
+            
+            selected_date = None
+        else:
+            # Get date filter from query params for date-specific view
+            date_str = request.args.get('date')
+            if date_str:
+                try:
+                    filter_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                except ValueError:
+                    filter_date = datetime.now().date()
+            else:
+                filter_date = datetime.now().date()
+            
+            # Get appointments for the selected date
+            next_day = filter_date + timedelta(days=1)
+            appointments = Appointment.query.filter(
+                db.and_(
+                    Appointment.doctor_id == current_user.id,
+                    Appointment.datetime >= filter_date,
+                    Appointment.datetime < next_day
+                )
+            ).order_by(Appointment.datetime).all()
+            
+            selected_date = filter_date
         
         return render_template('curing_doctor/appointments.html',
                              appointments=appointments,
-                             selected_date=filter_date)
+                             selected_date=selected_date)
     except Exception as e:
         current_app.logger.error(f"List appointments error: {str(e)}")
         flash('Error loading appointments.', 'error')
+        # Return with show_all status preserved and proper selected_date handling
+        show_all = request.args.get('show_all', '').lower() == 'true'
         return render_template('curing_doctor/appointments.html',
                              appointments=[],
-                             selected_date=datetime.now().date())
+                             selected_date=None if show_all else datetime.now().date())
 
 # TODO: Students can extend this section with additional curing doctor functionality:
 # - Treatment plan templates

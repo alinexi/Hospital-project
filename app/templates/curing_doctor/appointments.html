@@ -16,11 +16,11 @@
         <form method="GET" class="d-flex align-items-center gap-3">
             <label for="date" class="form-label mb-0">Date:</label>
             <input type="date" id="date" name="date" class="form-control" 
-                   value="{{ selected_date.strftime('%Y-%m-%d') }}" onchange="this.form.submit()">
+                   value="{{ selected_date.strftime('%Y-%m-%d') if selected_date else '' }}" onchange="this.form.submit()">
         </form>
     </div>
     <div class="col-md-6 text-end">
-        <div class="btn-group" role="group" data-current-date="{{ selected_date.strftime('%Y-%m-%d') }}" data-base-url="{{ url_for('curing_doctor.list_appointments') }}">
+        <div class="btn-group" role="group" data-current-date="{{ selected_date.strftime('%Y-%m-%d') if selected_date else '' }}" data-base-url="{{ url_for('curing_doctor.list_appointments') }}">
             <button onclick="navigateToDate(-1)" class="btn btn-outline-primary">
                 <i class="bi bi-chevron-left"></i> Previous Day
             </button>
@@ -31,6 +31,10 @@
             <button onclick="navigateToDate(1)" class="btn btn-outline-primary">
                 Next Day <i class="bi bi-chevron-right"></i>
             </button>
+            <a href="{{ url_for('curing_doctor.list_appointments') }}?show_all=true" 
+               class="btn btn-outline-success {% if request.args.get('show_all') %}active{% endif %}">
+                <i class="bi bi-calendar3"></i> Show All
+            </a>
         </div>
     </div>
 </div>
@@ -40,7 +44,13 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5><i class="bi bi-calendar-day"></i> Schedule for {{ selected_date.strftime('%A, %B %d, %Y') }}</h5>
+                <h5><i class="bi bi-calendar-day"></i> 
+                    {% if request.args.get('show_all') %}
+                        All My Appointments
+                    {% else %}
+                        Schedule for {{ selected_date.strftime('%A, %B %d, %Y') if selected_date else 'Today' }}
+                    {% endif %}
+                </h5>
             </div>
             <div class="card-body">
                 {% if appointments %}
@@ -55,7 +65,12 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-start mb-3">
                                         <h6 class="card-title mb-0">
-                                            <i class="bi bi-clock"></i> {{ appointment.datetime.strftime('%H:%M') }}
+                                            <i class="bi bi-clock"></i> 
+                                            {% if request.args.get('show_all') %}
+                                                {{ appointment.datetime.strftime('%Y-%m-%d %H:%M') }}
+                                            {% else %}
+                                                {{ appointment.datetime.strftime('%H:%M') }}
+                                            {% endif %}
                                         </h6>
                                         <span class="badge 
                                             {% if appointment.status == 'scheduled' %}bg-primary
@@ -107,8 +122,13 @@
                 {% else %}
                     <div class="text-center py-5">
                         <i class="bi bi-calendar-x fs-1 text-muted"></i>
-                        <p class="text-muted mt-3">No appointments scheduled for {{ selected_date.strftime('%B %d, %Y') }}</p>
-                        <small class="text-muted">Select a different date to view your schedule</small>
+                        {% if request.args.get('show_all') %}
+                            <p class="text-muted mt-3">No appointments found</p>
+                            <small class="text-muted">You have no appointments scheduled</small>
+                        {% else %}
+                            <p class="text-muted mt-3">No appointments scheduled for {{ selected_date.strftime('%B %d, %Y') if selected_date else 'today' }}</p>
+                            <small class="text-muted">Select a different date to view your schedule</small>
+                        {% endif %}
                     </div>
                 {% endif %}
             </div>
@@ -122,7 +142,13 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h6><i class="bi bi-graph-up"></i> Daily Summary</h6>
+                <h6><i class="bi bi-graph-up"></i> 
+                    {% if request.args.get('show_all') %}
+                        Appointments Summary
+                    {% else %}
+                        Daily Summary
+                    {% endif %}
+                </h6>
             </div>
             <div class="card-body">
                 <div class="row text-center">
@@ -186,9 +212,15 @@
                         </a>
                     </div>
                     <div class="col-md-4">
+                        {% if selected_date %}
                         <a href="{{ url_for('curing_doctor.list_appointments') }}?date={{ selected_date.strftime('%Y-%m-%d') }}" class="btn btn-outline-success w-100">
                             <i class="bi bi-calendar-plus"></i> View Today's Schedule
                         </a>
+                        {% else %}
+                        <a href="{{ url_for('curing_doctor.list_appointments') }}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-calendar-plus"></i> View Today's Schedule
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -202,7 +234,14 @@ function navigateToDate(offset) {
     const currentDate = btnGroup.getAttribute('data-current-date');
     const baseUrl = btnGroup.getAttribute('data-base-url');
     
-    let date = new Date(currentDate);
+    // If no current date (show all mode), use today as starting point
+    let date;
+    if (currentDate && currentDate !== '') {
+        date = new Date(currentDate);
+    } else {
+        date = new Date();
+    }
+    
     date.setDate(date.getDate() + offset);
     let dateString = date.toISOString().split('T')[0];
     window.location.href = baseUrl + '?date=' + dateString;

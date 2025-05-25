@@ -100,7 +100,7 @@
                             <a class="nav-link" href="{{ url_for('curing_doctor.list_patients') }}">My Patients</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('curing_doctor.list_appointments') }}">Appointments</a>
+                            <a class="nav-link" href="{{ url_for('curing_doctor.list_appointments') }}?show_all=true">Appointments</a>
                         </li>
                     {% elif current_user.role == 'special_doctor' %}
                         <li class="nav-item">
