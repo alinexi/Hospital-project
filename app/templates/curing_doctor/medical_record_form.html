@@ -24,150 +24,104 @@
                 <form method="POST">
                     {{ form.hidden_tag() }}
                     
-                    <div class="row">
-                        <!-- Left Column -->
-                        <div class="col-md-6">
-                            {% if not patient %}
-                            <div class="mb-3">
-                                {{ form.patient_id.label(class="form-label") }}
-                                {{ form.patient_id(class="form-control" + (" is-invalid" if form.patient_id.errors else "")) }}
-                                {% if form.patient_id.errors %}
-                                    <div class="invalid-feedback">
-                                        {% for error in form.patient_id.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                            
-                            <div class="mb-3">
-                                {{ form.record_type.label(class="form-label") }}
-                                {{ form.record_type(class="form-control" + (" is-invalid" if form.record_type.errors else "")) }}
-                                {% if form.record_type.errors %}
-                                    <div class="invalid-feedback">
-                                        {% for error in form.record_type.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="mb-3">
-                                {{ form.chief_complaint.label(class="form-label") }}
-                                {{ form.chief_complaint(class="form-control" + (" is-invalid" if form.chief_complaint.errors else ""), rows="3") }}
-                                {% if form.chief_complaint.errors %}
-                                    <div class="invalid-feedback">
-                                        {% for error in form.chief_complaint.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="form-text">Patient's primary concern or reason for visit</div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                {{ form.history_present_illness.label(class="form-label") }}
-                                {{ form.history_present_illness(class="form-control" + (" is-invalid" if form.history_present_illness.errors else ""), rows="4") }}
-                                {% if form.history_present_illness.errors %}
-                                    <div class="invalid-feedback">
-                                        {% for error in form.history_present_illness.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="mb-3">
-                                {{ form.physical_examination.label(class="form-label") }}
-                                {{ form.physical_examination(class="form-control" + (" is-invalid" if form.physical_examination.errors else ""), rows="4") }}
-                                {% if form.physical_examination.errors %}
-                                    <div class="invalid-feedback">
-                                        {% for error in form.physical_examination.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <!-- Right Column -->
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form.diagnosis.label(class="form-label") }}
-                                {{ form.diagnosis(class="form-control" + (" is-invalid" if form.diagnosis.errors else ""), rows="3") }}
-                                {% if form.diagnosis.errors %}
-                                    <div class="invalid-feedback">
-                                        {% for error in form.diagnosis.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="form-text">Primary and secondary diagnoses</div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                {{ form.treatment_plan.label(class="form-label") }}
-                                {{ form.treatment_plan(class="form-control" + (" is-invalid" if form.treatment_plan.errors else ""), rows="4") }}
-                                {% if form.treatment_plan.errors %}
-                                    <div class="invalid-feedback">
-                                        {% for error in form.treatment_plan.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="mb-3">
-                                {{ form.medications.label(class="form-label") }}
-                                {{ form.medications(class="form-control" + (" is-invalid" if form.medications.errors else ""), rows="3") }}
-                                {% if form.medications.errors %}
-                                    <div class="invalid-feedback">
-                                        {% for error in form.medications.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="form-text">Prescribed medications with dosages</div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                {{ form.lab_results.label(class="form-label") }}
-                                {{ form.lab_results(class="form-control" + (" is-invalid" if form.lab_results.errors else ""), rows="3") }}
-                                {% if form.lab_results.errors %}
-                                    <div class="invalid-feedback">
-                                        {% for error in form.lab_results.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="mb-3">
-                                {{ form.notes.label(class="form-label") }}
-                                {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else ""), rows="3") }}
-                                {% if form.notes.errors %}
-                                    <div class="invalid-feedback">
-                                        {% for error in form.notes.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="form-text">Additional clinical notes and observations</div>
-                            </div>
-                        </div>
+                    <!-- Patient Selection (hidden if editing existing record) -->
+                    <div class="mb-3" {% if record %}style="display: none;"{% endif %}>
+                        {{ form.patient_id.label(class="form-label") }}
+                        {{ form.patient_id(class="form-select") }}
+                        {% for error in form.patient_id.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
                     </div>
                     
-                    <hr>
+                    <!-- Record Type -->
+                    <div class="mb-3">
+                        {{ form.record_type.label(class="form-label") }}
+                        {{ form.record_type(class="form-select") }}
+                        {% for error in form.record_type.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
                     
-                    <div class="d-flex justify-content-between">
-                        <a href="{% if patient %}{{ url_for('curing_doctor.patient_records', patient_id=patient.id) }}{% else %}{{ url_for('curing_doctor.list_patients') }}{% endif %}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Back
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-{% if record %}check{% else %}plus{% endif %}"></i>
-                            {% if record %}Update Record{% else %}Create Record{% endif %}
-                        </button>
+                    <!-- Chief Complaint -->
+                    <div class="mb-3">
+                        {{ form.chief_complaint.label(class="form-label") }}
+                        {{ form.chief_complaint(class="form-control", rows="3", placeholder="Patient's primary concern or reason for visit...") }}
+                        {% for error in form.chief_complaint.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- History of Present Illness -->
+                    <div class="mb-3">
+                        {{ form.history_present_illness.label(class="form-label") }}
+                        {{ form.history_present_illness(class="form-control", rows="4", placeholder="Detailed description of current illness progression...") }}
+                        {% for error in form.history_present_illness.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Physical Examination -->
+                    <div class="mb-3">
+                        {{ form.physical_examination.label(class="form-label") }}
+                        {{ form.physical_examination(class="form-control", rows="4", placeholder="Physical examination findings...") }}
+                        {% for error in form.physical_examination.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Diagnosis -->
+                    <div class="mb-3">
+                        {{ form.diagnosis.label(class="form-label") }}
+                        {{ form.diagnosis(class="form-control", rows="3", placeholder="Primary and secondary diagnoses...") }}
+                        {% for error in form.diagnosis.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Treatment Plan -->
+                    <div class="mb-3">
+                        {{ form.treatment_plan.label(class="form-label") }}
+                        {{ form.treatment_plan(class="form-control", rows="4", placeholder="Planned treatments, procedures, and follow-up care...") }}
+                        {% for error in form.treatment_plan.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Medications -->
+                    <div class="mb-3">
+                        {{ form.medications.label(class="form-label") }}
+                        {{ form.medications(class="form-control", rows="3", placeholder="Prescribed medications, dosages, and instructions...") }}
+                        {% for error in form.medications.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Lab Results -->
+                    <div class="mb-3">
+                        {{ form.lab_results.label(class="form-label") }}
+                        {{ form.lab_results(class="form-control", rows="3", placeholder="Laboratory test results and interpretations...") }}
+                        {% for error in form.lab_results.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Additional Notes -->
+                    <div class="mb-3">
+                        {{ form.notes.label(class="form-label") }}
+                        {{ form.notes(class="form-control", rows="3", placeholder="Additional clinical notes and observations...") }}
+                        {% for error in form.notes.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-success") }}
+                        {% if patient %}
+                            <a href="{{ url_for('curing_doctor.patient_records', patient_id=patient.id) }}" class="btn btn-secondary">Cancel</a>
+                        {% else %}
+                            <a href="{{ url_for('curing_doctor.list_patients') }}" class="btn btn-secondary">Cancel</a>
+                        {% endif %}
                     </div>
                 </form>
             </div>
@@ -178,14 +132,39 @@
 <!-- Security Notice -->
 <div class="row mt-4">
     <div class="col-12">
-        <div class="alert alert-light" role="alert">
-            <h6><i class="bi bi-shield-lock"></i> Security & Privacy Notice:</h6>
-            <ul class="mb-0">
-                <li><i class="bi bi-lock text-success"></i> This medical record will be encrypted and digitally signed</li>
-                <li><i class="bi bi-eye text-info"></i> Access is logged and audited for security</li>
-                <li><i class="bi bi-key text-warning"></i> You can grant access to specialist doctors for consultation</li>
-                <li><i class="bi bi-person-check text-primary"></i> Patient will see limited summary information only</li>
-            </ul>
+        <div class="alert alert-info">
+            <i class="bi bi-shield-check"></i>
+            <strong>Security Notice:</strong> All medical record data will be encrypted and digitally signed before storage. 
+            Only authorized medical personnel can decrypt and view this information.
+        </div>
+    </div>
+</div>
+
+<!-- Quick Guidelines -->
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-info-circle"></i> Documentation Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled small">
+                            <li><i class="bi bi-check-circle text-success"></i> Be clear and concise</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Use medical terminology appropriately</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Include all relevant findings</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled small">
+                            <li><i class="bi bi-check-circle text-success"></i> Document treatment plans thoroughly</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Note any patient concerns</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Record follow-up requirements</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

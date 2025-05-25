@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}My Patients - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-people"></i> My Assigned Patients</h2>
+        <p class="text-muted">Manage medical care for your assigned patients</p>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3>{{ patients|length }}</h3>
+                <small>Assigned Patients</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h3>{{ patients|selectattr("user_id")|list|length }}</h3>
+                <small>Have User Accounts</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3>{{ patients|length - patients|selectattr("user_id")|list|length }}</h3>
+                <small>No User Account</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Actions -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <form method="GET" class="d-flex">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" 
+                       placeholder="Search patients by name or demographics..." 
+                       value="{{ request.args.get('search', '') }}">
+                <button class="btn btn-outline-primary" type="submit">
+                    <i class="bi bi-search"></i> Search
+                </button>
+                {% if request.args.get('search') %}
+                <a href="{{ url_for('curing_doctor.list_patients') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x"></i> Clear
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if patients %}
+        <div class="dropdown">
+            <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-file-plus"></i> New Medical Record
+            </button>
+            <ul class="dropdown-menu">
+                {% for patient in patients[:10] %}
+                <li><a class="dropdown-item" href="{{ url_for('curing_doctor.create_medical_record', patient_id=patient.id) }}">
+                    {{ patient.name }}
+                </a></li>
+                {% endfor %}
+                {% if patients|length > 10 %}
+                <li><hr class="dropdown-divider"></li>
+                <li><span class="dropdown-item-text">And {{ patients|length - 10 }} more...</span></li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Patients List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-list"></i> Assigned Patients 
+                    {% if request.args.get('search') %}
+                        (Search Results)
+                    {% else %}
+                        ({{ patients|length }})
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if patients %}
+                    <div class="row">
+                        {% for patient in patients %}
+                        <div class="col-lg-6 col-xl-4 mb-4">
+                            <div class="card h-100 border-start border-4 border-primary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h6 class="card-title mb-0">
+                                            <i class="bi bi-person"></i> {{ patient.name }}
+                                        </h6>
+                                        <small class="text-muted">ID: {{ patient.id }}</small>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar"></i> 
+                                            Born: {{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else 'Not set' }}
+                                        </small>
+                                        <br>
+                                        {% if patient.user_id %}
+                                            <span class="badge bg-success">Has User Account</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">No User Account</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if patient.demographics %}
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <strong>Demographics:</strong><br>
+                                            {{ patient.demographics[:100] }}{% if patient.demographics|length > 100 %}...{% endif %}
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Medical Records Count -->
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <i class="bi bi-file-medical"></i>
+                                            {% set record_count = patient.medical_records|length if patient.medical_records else 0 %}
+                                            {{ record_count }} Medical Record{% if record_count != 1 %}s{% endif %}
+                                        </small>
+                                    </div>
+                                    
+                                    <!-- Action Buttons -->
+                                    <div class="d-grid gap-2">
+                                        <a href="{{ url_for('curing_doctor.patient_records', patient_id=patient.id) }}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-file-medical"></i> View Records
+                                        </a>
+                                        <a href="{{ url_for('curing_doctor.create_medical_record', patient_id=patient.id) }}" 
+                                           class="btn btn-outline-success btn-sm">
+                                            <i class="bi bi-plus"></i> New Record
+                                        </a>
+                                        
+                                        <!-- Additional Actions Dropdown -->
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots"></i> More Actions
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="{{ url_for('curing_doctor.patient_records', patient_id=patient.id) }}">
+                                                    <i class="bi bi-file-medical"></i> All Records
+                                                </a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item patient-info-btn" href="#" 
+                                                       data-patient-id="{{ patient.id }}"
+                                                       data-patient-name="{{ patient.name }}"
+                                                       data-patient-dob="{{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else 'Not set' }}"
+                                                       data-patient-demographics="{{ patient.demographics[:200] if patient.demographics else 'No demographics available' }}">
+                                                    <i class="bi bi-info-circle"></i> Patient Info
+                                                </a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-person-x fs-1 text-muted"></i>
+                        {% if request.args.get('search') %}
+                            <p class="text-muted mt-3">No patients found matching "{{ request.args.get('search') }}"</p>
+                            <a href="{{ url_for('curing_doctor.list_patients') }}" class="btn btn-outline-primary">
+                                <i class="bi bi-arrow-left"></i> Show All Patients
+                            </a>
+                        {% else %}
+                            <p class="text-muted mt-3">No patients assigned to you yet.</p>
+                            <small class="text-muted">Contact your Chief Doctor for patient assignments.</small>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Statistics -->
+{% if patients %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-graph-up"></i> Patient Overview</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="border rounded p-3">
+                            <h5 class="text-primary">{{ patients|length }}</h5>
+                            <small class="text-muted">Total Assigned</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3">
+                            <h5 class="text-info">
+                                {% set total_records = 0 %}
+                                {% for patient in patients %}
+                                    {% set total_records = total_records + (patient.medical_records|length if patient.medical_records else 0) %}
+                                {% endfor %}
+                                {{ total_records }}
+                            </h5>
+                            <small class="text-muted">Total Records</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3">
+                            <h5 class="text-success">
+                                {{ (total_records / patients|length)|round(1) if patients|length > 0 else 0 }}
+                            </h5>
+                            <small class="text-muted">Avg Records/Patient</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Patient Info Modal -->
+<div class="modal fade" id="patientInfoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-vcard"></i> Patient Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="patientInfoContent">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle patient info modal
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.patient-info-btn')) {
+            e.preventDefault();
+            const btn = e.target.closest('.patient-info-btn');
+            
+            const patientId = btn.getAttribute('data-patient-id');
+            const name = btn.getAttribute('data-patient-name');
+            const dob = btn.getAttribute('data-patient-dob');
+            const demographics = btn.getAttribute('data-patient-demographics');
+            
+            showPatientInfo(patientId, name, dob, demographics);
+        }
+    });
+});
+
+function showPatientInfo(patientId, name, dob, demographics) {
+    const content = document.getElementById('patientInfoContent');
+    content.innerHTML = `
+        <div class="row">
+            <div class="col-12">
+                <p><strong>Patient ID:</strong> ${patientId}</p>
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Date of Birth:</strong> ${dob}</p>
+                <p><strong>Demographics:</strong></p>
+                <div class="border p-3 bg-light rounded">
+                    ${demographics}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('patientInfoModal'));
+    modal.show();
+}
+</script>
+{% endblock %} 

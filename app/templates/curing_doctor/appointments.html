@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}My Appointments - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-calendar-event"></i> My Appointments</h2>
+        <p class="text-muted">View and manage your appointment schedule</p>
+    </div>
+</div>
+
+<!-- Date Selection and Navigation -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <form method="GET" class="d-flex align-items-center gap-3">
+            <label for="date" class="form-label mb-0">Date:</label>
+            <input type="date" id="date" name="date" class="form-control" 
+                   value="{{ selected_date.strftime('%Y-%m-%d') }}" onchange="this.form.submit()">
+        </form>
+    </div>
+    <div class="col-md-6 text-end">
+        <div class="btn-group" role="group" data-current-date="{{ selected_date.strftime('%Y-%m-%d') }}" data-base-url="{{ url_for('curing_doctor.list_appointments') }}">
+            <button onclick="navigateToDate(-1)" class="btn btn-outline-primary">
+                <i class="bi bi-chevron-left"></i> Previous Day
+            </button>
+            <a href="{{ url_for('curing_doctor.list_appointments') }}" 
+               class="btn btn-outline-primary">
+                Today
+            </a>
+            <button onclick="navigateToDate(1)" class="btn btn-outline-primary">
+                Next Day <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Appointments Display -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-calendar-day"></i> Schedule for {{ selected_date.strftime('%A, %B %d, %Y') }}</h5>
+            </div>
+            <div class="card-body">
+                {% if appointments %}
+                    <div class="row">
+                        {% for appointment in appointments %}
+                        <div class="col-lg-6 mb-4">
+                            <div class="card border-start border-4 
+                                {% if appointment.status == 'scheduled' %}border-primary
+                                {% elif appointment.status == 'completed' %}border-success
+                                {% elif appointment.status == 'cancelled' %}border-danger
+                                {% else %}border-warning{% endif %}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h6 class="card-title mb-0">
+                                            <i class="bi bi-clock"></i> {{ appointment.datetime.strftime('%H:%M') }}
+                                        </h6>
+                                        <span class="badge 
+                                            {% if appointment.status == 'scheduled' %}bg-primary
+                                            {% elif appointment.status == 'completed' %}bg-success
+                                            {% elif appointment.status == 'cancelled' %}bg-danger
+                                            {% else %}bg-warning{% endif %}">
+                                            {{ appointment.status.title() }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <strong><i class="bi bi-person"></i> Patient:</strong>
+                                        <br>{{ appointment.patient.name }}
+                                        <br><small class="text-muted">
+                                            ID: {{ appointment.patient.id }} | 
+                                            Born: {{ appointment.patient.date_of_birth.strftime('%Y-%m-%d') if appointment.patient.date_of_birth else 'Not set' }}
+                                        </small>
+                                    </div>
+                                    
+                                    {% if appointment.notes %}
+                                    <div class="mb-3">
+                                        <strong><i class="bi bi-card-text"></i> Notes:</strong>
+                                        <br><small>{{ appointment.notes }}</small>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        {% if appointment.status == 'scheduled' %}
+                                            <a href="{{ url_for('curing_doctor.patient_records', patient_id=appointment.patient.id) }}" 
+                                               class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-file-medical"></i> Records
+                                            </a>
+                                            <a href="{{ url_for('curing_doctor.create_medical_record', patient_id=appointment.patient.id) }}" 
+                                               class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-plus"></i> New Record
+                                            </a>
+                                        {% elif appointment.status == 'completed' %}
+                                            <a href="{{ url_for('curing_doctor.patient_records', patient_id=appointment.patient.id) }}" 
+                                               class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-file-medical"></i> View Records
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-calendar-x fs-1 text-muted"></i>
+                        <p class="text-muted mt-3">No appointments scheduled for {{ selected_date.strftime('%B %d, %Y') }}</p>
+                        <small class="text-muted">Select a different date to view your schedule</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Daily Summary -->
+{% if appointments %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-graph-up"></i> Daily Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-primary">{{ appointments|length }}</h4>
+                            <small class="text-muted">Total Appointments</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-success">
+                                {% set completed_count = appointments|selectattr("status", "equalto", "completed")|list|length %}
+                                {{ completed_count }}
+                            </h4>
+                            <small class="text-muted">Completed</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-warning">
+                                {% set scheduled_count = appointments|selectattr("status", "equalto", "scheduled")|list|length %}
+                                {{ scheduled_count }}
+                            </h4>
+                            <small class="text-muted">Scheduled</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-danger">
+                                {% set cancelled_count = appointments|selectattr("status", "equalto", "cancelled")|list|length %}
+                                {{ cancelled_count }}
+                            </h4>
+                            <small class="text-muted">Cancelled</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-lightning-charge"></i> Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('curing_doctor.list_patients') }}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-people"></i> My Patients
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('curing_doctor.dashboard') }}" class="btn btn-outline-info w-100">
+                            <i class="bi bi-house"></i> Dashboard
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('curing_doctor.list_appointments') }}?date={{ selected_date.strftime('%Y-%m-%d') }}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-calendar-plus"></i> View Today's Schedule
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function navigateToDate(offset) {
+    const btnGroup = document.querySelector('.btn-group[data-current-date]');
+    const currentDate = btnGroup.getAttribute('data-current-date');
+    const baseUrl = btnGroup.getAttribute('data-base-url');
+    
+    let date = new Date(currentDate);
+    date.setDate(date.getDate() + offset);
+    let dateString = date.toISOString().split('T')[0];
+    window.location.href = baseUrl + '?date=' + dateString;
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Grant Access - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-key"></i> Grant Record Access</h2>
+        <p class="text-muted">Grant read access to special doctors for consultation</p>
+    </div>
+</div>
+
+<!-- Record Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h5><i class="bi bi-file-medical"></i> Medical Record Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Patient:</strong> {{ record.patient.name }}</p>
+                        <p><strong>Record Type:</strong> 
+                            <span class="badge bg-primary">{{ record.record_type.replace('_', ' ').title() }}</span>
+                        </p>
+                        <p><strong>Created:</strong> {{ record.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Author:</strong> Dr. {{ record.author.username }}</p>
+                        <p><strong>Patient ID:</strong> {{ record.patient.id }}</p>
+                        <p><strong>Record ID:</strong> {{ record.id }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grant Access Form -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-person-plus"></i> Grant Access to Special Doctor</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.special_doctor_id.label(class="form-label") }}
+                        {{ form.special_doctor_id(class="form-select") }}
+                        {% for error in form.special_doctor_id.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">
+                            Select a special doctor to grant read access to this medical record
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-success") }}
+                        <a href="{{ url_for('curing_doctor.patient_records', patient_id=record.patient.id) }}" 
+                           class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Access Guidelines -->
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-info-circle"></i> Access Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    <li><i class="bi bi-check-circle text-success"></i> Special doctors get read-only access</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Access is for consultation purposes</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Only you can grant access to your records</li>
+                    <li><i class="bi bi-check-circle text-success"></i> Access can be revoked later if needed</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Current Access Grants -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6><i class="bi bi-people"></i> Current Access</h6>
+            </div>
+            <div class="card-body">
+                {% if record.access_grants %}
+                    <div class="list-group list-group-flush">
+                        {% for grant in record.access_grants %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Dr. {{ grant.granted_to_user.username }}</strong>
+                                <br><small class="text-muted">
+                                    Granted: {{ grant.granted_date.strftime('%Y-%m-%d') }}
+                                </small>
+                            </div>
+                            <span class="badge bg-success">Active</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">
+                        <i class="bi bi-lock"></i><br>
+                        No access granted yet
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Security Notice -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6><i class="bi bi-shield-check"></i> Security</h6>
+            </div>
+            <div class="card-body">
+                <small class="text-muted">
+                    <i class="bi bi-lock"></i> Medical records remain encrypted<br>
+                    <i class="bi bi-eye"></i> Access is logged and auditable<br>
+                    <i class="bi bi-clock"></i> Access history is tracked
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Record Preview (Optional) -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-eye"></i> Record Preview</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Record Type:</strong> {{ record.record_type.replace('_', ' ').title() }}
+                    <br><strong>Created:</strong> {{ record.timestamp.strftime('%A, %B %d, %Y at %H:%M') }}
+                    <br><strong>For Patient:</strong> {{ record.patient.name }} (ID: {{ record.patient.id }})
+                </div>
+                <small class="text-muted">
+                    <i class="bi bi-lock"></i> Record content is encrypted and will only be accessible to authorized users.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
