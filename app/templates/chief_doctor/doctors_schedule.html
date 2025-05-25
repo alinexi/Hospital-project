@@ -16,11 +16,11 @@
         <form method="GET" class="d-flex align-items-center gap-3">
             <label for="date" class="form-label mb-0">Date:</label>
             <input type="date" id="date" name="date" class="form-control" 
-                   value="{{ selected_date.strftime('%Y-%m-%d') }}" onchange="this.form.submit()">
+                   value="{{ selected_date.strftime('%Y-%m-%d') if selected_date else '' }}" onchange="this.form.submit()">
         </form>
     </div>
     <div class="col-md-6 text-end">
-        <div class="btn-group" role="group" data-current-date="{{ selected_date.strftime('%Y-%m-%d') }}" data-base-url="{{ url_for('chief_doctor.view_doctors_schedule') }}">
+        <div class="btn-group" role="group" data-current-date="{{ selected_date.strftime('%Y-%m-%d') if selected_date else '' }}" data-base-url="{{ url_for('chief_doctor.view_doctors_schedule') }}">
             <button onclick="navigateToDate(-1)" class="btn btn-outline-primary">
                 <i class="bi bi-chevron-left"></i> Previous Day
             </button>
@@ -31,6 +31,10 @@
             <button onclick="navigateToDate(1)" class="btn btn-outline-primary">
                 Next Day <i class="bi bi-chevron-right"></i>
             </button>
+            <a href="{{ url_for('chief_doctor.view_doctors_schedule') }}?show_all=true" 
+               class="btn btn-outline-success">
+                <i class="bi bi-calendar3-range"></i> Show All
+            </a>
         </div>
     </div>
 </div>
@@ -40,7 +44,13 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5><i class="bi bi-calendar-day"></i> Schedule for {{ selected_date.strftime('%A, %B %d, %Y') }}</h5>
+                <h5><i class="bi bi-calendar-day"></i> 
+                    {% if request.args.get('show_all') %}
+                        All Appointments
+                    {% else %}
+                        Schedule for {{ selected_date.strftime('%A, %B %d, %Y') if selected_date else 'Today' }}
+                    {% endif %}
+                </h5>
             </div>
             <div class="card-body">
                 {% if doctor_schedules %}
@@ -62,7 +72,13 @@
                                         {% else %}border-warning{% endif %}">
                                         <div class="card-body p-3">
                                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <h6 class="card-title mb-0">{{ appointment.datetime.strftime('%H:%M') }}</h6>
+                                                <h6 class="card-title mb-0">
+                                                    {% if request.args.get('show_all') %}
+                                                        {{ appointment.datetime.strftime('%m/%d %H:%M') }}
+                                                    {% else %}
+                                                        {{ appointment.datetime.strftime('%H:%M') }}
+                                                    {% endif %}
+                                                </h6>
                                                 <span class="badge 
                                                     {% if appointment.status == 'scheduled' %}bg-primary
                                                     {% elif appointment.status == 'completed' %}bg-success
@@ -104,8 +120,20 @@
                 {% else %}
                     <div class="text-center py-5">
                         <i class="bi bi-calendar-x fs-1 text-muted"></i>
-                        <p class="text-muted mt-3">No appointments scheduled for {{ selected_date.strftime('%B %d, %Y') }}</p>
-                        <small class="text-muted">Select a different date to view schedules</small>
+                        <p class="text-muted mt-3">
+                            {% if request.args.get('show_all') %}
+                                No appointments found in the system
+                            {% else %}
+                                No appointments scheduled for {{ selected_date.strftime('%B %d, %Y') if selected_date else 'today' }}
+                            {% endif %}
+                        </p>
+                        <small class="text-muted">
+                            {% if request.args.get('show_all') %}
+                                Try selecting a specific date to view daily schedules
+                            {% else %}
+                                Select a different date to view schedules or click "Show All" to see all appointments
+                            {% endif %}
+                        </small>
                     </div>
                 {% endif %}
             </div>

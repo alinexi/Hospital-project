@@ -272,27 +272,42 @@ def remove_assignment(assignment_id):
 def view_doctors_schedule():
     """View all doctors' appointment schedules"""
     try:
-        # Get date filter from query params
-        date_str = request.args.get('date')
-        if date_str:
-            try:
-                filter_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            except ValueError:
-                filter_date = datetime.now().date()
-        else:
-            filter_date = datetime.now().date()
+        # Check if show_all parameter is present
+        show_all = request.args.get('show_all', '').lower() == 'true'
         
-        # Get appointments for all doctors on the selected date
-        next_day = filter_date + timedelta(days=1)
-        appointments = db.session.query(Appointment).join(
-            User, Appointment.doctor_id == User.id
-        ).filter(
-            db.and_(
-                Appointment.datetime >= filter_date,
-                Appointment.datetime < next_day,
+        if show_all:
+            # Show all appointments
+            appointments = db.session.query(Appointment).join(
+                User, Appointment.doctor_id == User.id
+            ).filter(
                 User.role.in_(['curing_doctor', 'special_doctor'])
-            )
-        ).order_by(User.username, Appointment.datetime).all()
+            ).order_by(User.username, Appointment.datetime).all()
+            
+            selected_date = None
+        else:
+            # Get date filter from query params for date-specific view
+            date_str = request.args.get('date')
+            if date_str:
+                try:
+                    filter_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                except ValueError:
+                    filter_date = datetime.now().date()
+            else:
+                filter_date = datetime.now().date()
+            
+            # Get appointments for all doctors on the selected date
+            next_day = filter_date + timedelta(days=1)
+            appointments = db.session.query(Appointment).join(
+                User, Appointment.doctor_id == User.id
+            ).filter(
+                db.and_(
+                    Appointment.datetime >= filter_date,
+                    Appointment.datetime < next_day,
+                    User.role.in_(['curing_doctor', 'special_doctor'])
+                )
+            ).order_by(User.username, Appointment.datetime).all()
+            
+            selected_date = filter_date
         
         # Group appointments by doctor
         doctor_schedules = {}
@@ -303,7 +318,7 @@ def view_doctors_schedule():
         
         return render_template('chief_doctor/doctors_schedule.html',
                              doctor_schedules=doctor_schedules,
-                             selected_date=filter_date)
+                             selected_date=selected_date)
     except Exception as e:
         current_app.logger.error(f"View doctors schedule error: {str(e)}")
         flash('Error loading doctors schedule.', 'error')
