@@ -152,13 +152,14 @@ def edit_user(user_id):
             
             flash(f'User {user.username} updated successfully.', 'success')
             return redirect(url_for('sysadmin.list_users'))
+        
+        return render_template('sysadmin/user_form.html', form=form, title='Edit User', user=user)
     
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Edit user error: {str(e)}")
         flash('Error updating user. Please try again.', 'error')
-    
-    return render_template('sysadmin/user_form.html', form=form, title='Edit User', user=user)
+        return redirect(url_for('sysadmin.list_users'))
 
 @bp.route('/users/<int:user_id>/delete', methods=['POST'])
 @login_required

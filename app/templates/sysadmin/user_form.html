@@ -137,26 +137,17 @@
             </div>
             <div class="card-body">
                 <div class="d-flex gap-2">
-                    <a href="{{ url_for('sysadmin.reset_password', user_id=user.id) }}" class="btn btn-outline-warning">
-                        <i class="bi bi-key"></i> Reset Password
-                    </a>
                     {% if user.id != current_user.id and user.role != 'sysadmin' %}
-                    <button class="btn btn-outline-danger" onclick="confirmDelete()">
-                        <i class="bi bi-trash"></i> Delete Account
-                    </button>
+                    <form method="POST" action="{{ url_for('sysadmin.delete_user', user_id=user.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user account? This action cannot be undone.')">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Delete Account
+                        </button>
+                    </form>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-function confirmDelete() {
-    if (confirm('Are you sure you want to delete this user account? This action cannot be undone.')) {
-        window.location.href = '{{ url_for("sysadmin.delete_user", user_id=user.id) }}';
-    }
-}
-</script>
 {% endif %}
 {% endblock %} 
