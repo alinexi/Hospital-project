@@ -75,11 +75,8 @@
                                         <a href="{{ url_for('sysadmin.edit_user', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
                                             <i class="bi bi-pencil"></i> Edit
                                         </a>
-                                        <a href="{{ url_for('sysadmin.reset_password', user_id=user.id) }}" class="btn btn-sm btn-outline-warning">
-                                            <i class="bi bi-key"></i> Reset
-                                        </a>
                                         {% if user.role != 'sysadmin' %}
-                                        <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete({{ user.id }}, '{{ user.username }}')">
+                                        <button class="btn btn-sm btn-outline-danger delete-user-btn" data-user-id="{{ user.id }}" data-username="{{ user.username }}">
                                             <i class="bi bi-trash"></i> Delete
                                         </button>
                                         {% endif %}
@@ -159,6 +156,17 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners to all delete buttons
+    document.querySelectorAll('.delete-user-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const userId = this.getAttribute('data-user-id');
+            const username = this.getAttribute('data-username');
+            confirmDelete(userId, username);
+        });
+    });
+});
+
 function confirmDelete(userId, username) {
     document.getElementById('deleteUsername').textContent = username;
     document.getElementById('deleteForm').action = '/sysadmin/users/' + userId + '/delete';

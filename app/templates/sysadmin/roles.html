@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Role Management - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-shield-check"></i> Role Management</h2>
+        <p class="text-muted">Manage system roles and their permissions</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>System Roles</h5>
+            </div>
+            <div class="card-body">
+                {% if roles %}
+                    <div class="row">
+                        {% for role_key, role_description in roles.items() %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <span class="badge bg-primary">{{ role_key.replace('_', ' ').title() }}</span>
+                                    </h5>
+                                    <p class="card-text">{{ role_description }}</p>
+                                    
+                                    <!-- Role-specific permissions -->
+                                    <div class="mt-3">
+                                        <h6 class="text-muted">Key Permissions:</h6>
+                                        <ul class="list-unstyled">
+                                            {% if role_key == 'sysadmin' %}
+                                                <li><i class="bi bi-check-circle text-success"></i> Full system access</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> User management</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> System configuration</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> Audit log access</li>
+                                            {% elif role_key == 'receptionist' %}
+                                                <li><i class="bi bi-check-circle text-success"></i> Patient registration</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> Appointment scheduling</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> Basic patient info access</li>
+                                            {% elif role_key == 'chief_doctor' %}
+                                                <li><i class="bi bi-check-circle text-success"></i> View all medical records</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> Assign patients to doctors</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> Generate reports</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> Schedule management</li>
+                                            {% elif role_key == 'curing_doctor' %}
+                                                <li><i class="bi bi-check-circle text-success"></i> Manage assigned patients</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> Create medical records</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> Appointment management</li>
+                                            {% elif role_key == 'special_doctor' %}
+                                                <li><i class="bi bi-check-circle text-success"></i> Access granted records</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> Consultation services</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> Specialist appointments</li>
+                                            {% elif role_key == 'patient' %}
+                                                <li><i class="bi bi-check-circle text-success"></i> View own information</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> Book appointments</li>
+                                                <li><i class="bi bi-check-circle text-success"></i> Update profile</li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-shield-check fs-1 text-muted"></i>
+                        <h5 class="text-muted mt-3">No Roles Defined</h5>
+                        <p class="text-muted">System roles will appear here once configured.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Information -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Role Management Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-info-circle"></i> Role Hierarchy</h6>
+                    <p class="mb-2">The system follows a role-based access control model:</p>
+                    <ol>
+                        <li><strong>System Administrator</strong> - Highest level access</li>
+                        <li><strong>Chief Doctor</strong> - Medical leadership and oversight</li>
+                        <li><strong>Curing/Special Doctors</strong> - Medical practitioners</li>
+                        <li><strong>Receptionist</strong> - Administrative staff</li>
+                        <li><strong>Patient</strong> - End users of medical services</li>
+                    </ol>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <h6><i class="bi bi-exclamation-triangle"></i> Future Enhancements</h6>
+                    <p class="mb-0">This section can be extended to include:</p>
+                    <ul class="mb-0">
+                        <li>Custom permission assignment</li>
+                        <li>Role creation and deletion</li>
+                        <li>Fine-grained access control</li>
+                        <li>Department-based role restrictions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <a href="{{ url_for('sysadmin.dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <a href="{{ url_for('sysadmin.list_users') }}" class="btn btn-primary">
+            <i class="bi bi-people"></i> Manage Users
+        </a>
+    </div>
+</div>
+{% endblock %} 
