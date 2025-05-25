@@ -65,7 +65,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">{{ patient.medical_records|length }}</span>
+                                        <span class="badge bg-info">{{ patient.medical_records.count() }}</span>
                                     </td>
                                     <td>
                                         <a href="{{ url_for('curing_doctor.patient_records', patient_id=patient.id) }}" class="btn btn-sm btn-outline-primary">
