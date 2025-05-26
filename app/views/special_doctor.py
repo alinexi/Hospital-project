@@ -58,11 +58,11 @@ def dashboard():
         flash('Error loading dashboard.', 'error')
         return render_template('special_doctor/dashboard.html')
 
-@bp.route('/granted-records')
+@bp.route('/access-grants')
 @login_required
 @role_required('special_doctor')
-def list_granted_records():
-    """View read-only medical records for granted patients"""
+def list_access_grants():
+    """View read-only medical records for granted patients (renamed from granted_records)"""
     try:
         search_form = SearchForm()
         page = request.args.get('page', 1, type=int)
@@ -88,13 +88,13 @@ def list_granted_records():
             page=page, per_page=per_page, error_out=False
         )
         
-        return render_template('special_doctor/granted_records.html',
+        return render_template('special_doctor/access_grants.html',
                              medical_records=medical_records,
                              search_form=search_form)
     except Exception as e:
         current_app.logger.error(f"List granted records error: {str(e)}")
         flash('Error loading granted records.', 'error')
-        return render_template('special_doctor/granted_records.html',
+        return render_template('special_doctor/access_grants.html',
                              medical_records=None,
                              search_form=SearchForm())
 
@@ -112,7 +112,7 @@ def view_granted_record(record_id):
         
         if not access_grant:
             flash('Access denied. You do not have permission to view this record.', 'error')
-            return redirect(url_for('special_doctor.list_granted_records'))
+            return redirect(url_for('special_doctor.list_access_grants'))
         
         medical_record = MedicalRecord.query.get_or_404(record_id)
         
@@ -137,7 +137,7 @@ def view_granted_record(record_id):
     except Exception as e:
         current_app.logger.error(f"View granted record error: {str(e)}")
         flash('Error loading medical record.', 'error')
-        return redirect(url_for('special_doctor.list_granted_records'))
+        return redirect(url_for('special_doctor.list_access_grants'))
 
 @bp.route('/consulting-assignments')
 @login_required
@@ -263,33 +263,7 @@ def list_appointments():
                              appointments=[],
                              selected_date=datetime.now().date())
 
-@bp.route('/access-grants')
-@login_required
-@role_required('special_doctor')
-def list_access_grants():
-    """View all access grants received"""
-    try:
-        page = request.args.get('page', 1, type=int)
-        per_page = 20
-        
-        # Get all access grants for this doctor
-        access_grants = db.session.query(AccessGrant).join(
-            MedicalRecord, AccessGrant.record_id == MedicalRecord.id
-        ).join(
-            Patient, MedicalRecord.patient_id == Patient.id
-        ).filter(
-            AccessGrant.granted_to_user_id == current_user.id
-        ).order_by(AccessGrant.granted_date.desc()).paginate(
-            page=page, per_page=per_page, error_out=False
-        )
-        
-        return render_template('special_doctor/access_grants.html',
-                             access_grants=access_grants)
-    except Exception as e:
-        current_app.logger.error(f"List access grants error: {str(e)}")
-        flash('Error loading access grants.', 'error')
-        return render_template('special_doctor/access_grants.html',
-                             access_grants=None)
+# Route removed - access_grants page deleted and functionality moved to granted_records
 
 # TODO: Students can extend this section with additional special doctor functionality:
 # - Consultation notes and recommendations
