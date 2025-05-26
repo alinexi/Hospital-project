@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Consulting Assignments - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-person-check"></i> Consulting Assignments</h2>
+        <p class="text-muted">Patients for whom you have been granted access for consultation</p>
+    </div>
+</div>
+
+<!-- Navigation -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <a href="{{ url_for('special_doctor.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('special_doctor.list_granted_records') }}" class="btn btn-primary">
+            <i class="bi bi-file-lock"></i> View All Granted Records
+        </a>
+    </div>
+</div>
+
+<!-- Consulting Assignments List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-list"></i> Consulting Assignments ({{ consulting_assignments|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if consulting_assignments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Patient ID</th>
+                                    <th>Patient Name</th>
+                                    <th>Date of Birth</th>
+                                    <th>Granted Records</th>
+                                    <th>Latest Grant</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in consulting_assignments %}
+                                <tr>
+                                    <td>{{ assignment.patient.id }}</td>
+                                    <td><strong>{{ assignment.patient.name }}</strong></td>
+                                    <td>{{ assignment.patient.date_of_birth.strftime('%Y-%m-%d') if assignment.patient.date_of_birth else 'Not set' }}</td>
+                                    <td>
+                                        <span class="badge bg-primary fs-6">{{ assignment.granted_records_count }}</span>
+                                    </td>
+                                    <td>{{ assignment.latest_grant_date.strftime('%Y-%m-%d') if assignment.latest_grant_date else 'N/A' }}</td>
+                                    <td>
+                                        <a href="{{ url_for('special_doctor.patient_granted_records', patient_id=assignment.patient.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-file-lock"></i> View Records
+                                        </a>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="{{ url_for('special_doctor.patient_granted_records', patient_id=assignment.patient.id) }}">
+                                                    <i class="bi bi-file-lock"></i> All Granted Records
+                                                </a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><h6 class="dropdown-header">Patient Info</h6></li>
+                                                <li><span class="dropdown-item-text small">
+                                                    <strong>Phone:</strong> {{ assignment.patient.phone_number or 'Not provided' }}<br>
+                                                    <strong>Address:</strong> {{ assignment.patient.address or 'Not provided' }}
+                                                </span></li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-person-x fs-1 text-muted"></i>
+                        <p class="text-muted mt-3">No consulting assignments yet.</p>
+                        <p class="text-muted">Curing doctors can grant you access to patient records for consultation.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Details Cards -->
+{% if consulting_assignments %}
+<div class="row mt-4">
+    {% for assignment in consulting_assignments[:3] %}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-person"></i> {{ assignment.patient.name }}</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Patient ID:</strong> {{ assignment.patient.id }}</p>
+                <p class="mb-2"><strong>Date of Birth:</strong> {{ assignment.patient.date_of_birth.strftime('%Y-%m-%d') if assignment.patient.date_of_birth else 'Not set' }}</p>
+                <p class="mb-2"><strong>Granted Records:</strong> <span class="badge bg-primary">{{ assignment.granted_records_count }}</span></p>
+                <p class="mb-3"><strong>Latest Grant:</strong> {{ assignment.latest_grant_date.strftime('%Y-%m-%d') if assignment.latest_grant_date else 'N/A' }}</p>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('special_doctor.patient_granted_records', patient_id=assignment.patient.id) }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-file-lock"></i> View Records
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Quick Statistics -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary">{{ consulting_assignments|length }}</h4>
+                <p class="text-muted">Total Patients</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success">
+                    {% set total_records = consulting_assignments|map(attribute='granted_records_count')|sum %}
+                    {{ total_records }}
+                </h4>
+                <p class="text-muted">Total Granted Records</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <a href="{{ url_for('special_doctor.list_granted_records') }}" class="btn btn-outline-info">
+                    <i class="bi bi-file-lock"></i><br>
+                    All Records
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-warning">
+                    <i class="bi bi-calendar-event"></i><br>
+                    Appointments
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Assignments -->
+{% if consulting_assignments %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-clock-history"></i> Recent Assignment Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% for assignment in consulting_assignments|sort(attribute='latest_grant_date', reverse=true)[:5] %}
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge bg-primary rounded-pill">{{ loop.index }}</span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">{{ assignment.patient.name }}</h6>
+                            <p class="mb-1 text-muted">{{ assignment.granted_records_count }} record(s) granted</p>
+                            <small class="text-muted">Latest grant: {{ assignment.latest_grant_date.strftime('%Y-%m-%d %H:%M') if assignment.latest_grant_date else 'N/A' }}</small>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <a href="{{ url_for('special_doctor.patient_granted_records', patient_id=assignment.patient.id) }}" class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

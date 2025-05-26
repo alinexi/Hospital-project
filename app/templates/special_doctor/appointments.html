@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block title %}Consultation Appointments - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-calendar-event"></i> Consultation Appointments</h2>
+        <p class="text-muted">Your specialist consultation schedule</p>
+    </div>
+</div>
+
+<!-- Date Navigation -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="btn-group">
+            <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-chevron-left"></i> Previous Day
+            </a>
+            <span class="btn btn-primary">{{ selected_date.strftime('%A, %B %d, %Y') }}</span>
+            <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary">
+                Next Day <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-6 text-end">
+        <form method="GET" class="d-inline">
+            <div class="input-group" style="width: 200px;">
+                <input type="date" name="date" class="form-control" value="{{ selected_date.strftime('%Y-%m-%d') }}">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-calendar"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Quick Date Navigation -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="btn-group">
+            <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-primary btn-sm">
+                Today
+            </a>
+            <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-primary btn-sm">
+                Tomorrow
+            </a>
+            <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm">
+                This Week
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Appointments List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-clock"></i> Appointments for {{ selected_date.strftime('%B %d, %Y') }}</h5>
+            </div>
+            <div class="card-body">
+                {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Status</th>
+                                    <th>Type</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in appointments %}
+                                <tr class="{% if appointment.status == 'cancelled' %}text-muted{% endif %}">
+                                    <td>
+                                        <strong>{{ appointment.datetime.strftime('%H:%M') }}</strong>
+                                    </td>
+                                    <td>
+                                        <strong>{{ appointment.patient.name }}</strong><br>
+                                        <small class="text-muted">ID: {{ appointment.patient.id }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if appointment.status == 'scheduled' %}primary{% elif appointment.status == 'completed' %}success{% elif appointment.status == 'cancelled' %}danger{% elif appointment.status == 'in_progress' %}warning{% else %}secondary{% endif %}">
+                                            {{ appointment.status.replace('_', ' ').title() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if appointment.appointment_type %}
+                                            <span class="badge bg-info">{{ appointment.appointment_type.replace('_', ' ').title() }}</span>
+                                        {% else %}
+                                            <span class="text-muted">Consultation</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if appointment.notes %}
+                                            {{ appointment.notes[:50] }}{% if appointment.notes|length > 50 %}...{% endif %}
+                                        {% else %}
+                                            <span class="text-muted">No notes</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('special_doctor.patient_granted_records', patient_id=appointment.patient.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-file-lock"></i> Records
+                                        </a>
+                                        {% if appointment.status == 'scheduled' %}
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><h6 class="dropdown-header">Appointment Actions</h6></li>
+                                                <li><span class="dropdown-item-text small">
+                                                    <strong>Duration:</strong> {{ (appointment.duration or 30) }} minutes<br>
+                                                    <strong>Created:</strong> {{ appointment.created_at.strftime('%Y-%m-%d') if appointment.created_at else 'N/A' }}
+                                                </span></li>
+                                            </ul>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-calendar-x fs-1 text-muted"></i>
+                        <p class="text-muted mt-3">No consultation appointments scheduled for {{ selected_date.strftime('%B %d, %Y') }}.</p>
+                        <p class="text-muted">Appointments are typically scheduled by curing doctors or receptionists.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Daily Schedule Overview -->
+{% if appointments %}
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-clock-history"></i> Daily Schedule Timeline</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% for appointment in appointments|sort(attribute='datetime') %}
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge bg-{% if appointment.status == 'scheduled' %}primary{% elif appointment.status == 'completed' %}success{% elif appointment.status == 'cancelled' %}danger{% elif appointment.status == 'in_progress' %}warning{% else %}secondary{% endif %} rounded-pill">
+                                {{ appointment.datetime.strftime('%H:%M') }}
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">{{ appointment.patient.name }}</h6>
+                            <p class="mb-1">
+                                {% if appointment.appointment_type %}
+                                    {{ appointment.appointment_type.replace('_', ' ').title() }}
+                                {% else %}
+                                    Consultation
+                                {% endif %}
+                                - Duration: {{ (appointment.duration or 30) }} minutes
+                            </p>
+                            {% if appointment.notes %}
+                            <small class="text-muted">{{ appointment.notes }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="flex-shrink-0">
+                            <a href="{{ url_for('special_doctor.patient_granted_records', patient_id=appointment.patient.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-file-lock"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics Sidebar -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up"></i> Daily Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Total Appointments:</strong><br>
+                    <span class="badge bg-primary fs-6">{{ appointments|length }}</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Scheduled:</strong><br>
+                    <span class="badge bg-primary">{{ appointments|selectattr('status', 'equalto', 'scheduled')|list|length }}</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Completed:</strong><br>
+                    <span class="badge bg-success">{{ appointments|selectattr('status', 'equalto', 'completed')|list|length }}</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Cancelled:</strong><br>
+                    <span class="badge bg-danger">{{ appointments|selectattr('status', 'equalto', 'cancelled')|list|length }}</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Total Duration:</strong><br>
+                    {% set total_duration = appointments|map(attribute='duration')|map('default', 30)|sum %}
+                    {{ total_duration }} minutes ({{ "%.1f"|format(total_duration/60) }} hours)
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('special_doctor.list_granted_records') }}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="bi bi-file-lock"></i> Granted Records
+                </a>
+                <a href="{{ url_for('special_doctor.list_consulting_assignments') }}" class="btn btn-outline-success w-100 mb-2">
+                    <i class="bi bi-person-check"></i> Consultations
+                </a>
+                <a href="{{ url_for('special_doctor.dashboard') }}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Week Overview -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-calendar-week"></i> Week Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col">
+                        <h6>Mon</h6>
+                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
+                            --
+                        </a>
+                    </div>
+                    <div class="col">
+                        <h6>Tue</h6>
+                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
+                            --
+                        </a>
+                    </div>
+                    <div class="col">
+                        <h6>Wed</h6>
+                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
+                            --
+                        </a>
+                    </div>
+                    <div class="col">
+                        <h6>Thu</h6>
+                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
+                            --
+                        </a>
+                    </div>
+                    <div class="col">
+                        <h6>Fri</h6>
+                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
+                            --
+                        </a>
+                    </div>
+                    <div class="col">
+                        <h6>Sat</h6>
+                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
+                            --
+                        </a>
+                    </div>
+                    <div class="col">
+                        <h6>Sun</h6>
+                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
+                            --
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add timedelta for template calculations
+window.timedelta = {
+    days: function(days) {
+        return new Date(Date.now() + (days * 24 * 60 * 60 * 1000));
+    }
+};
+</script>
+{% endblock %} 

@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Records - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-person-badge"></i> {{ patient.name }} - Granted Medical Records</h2>
+        <p class="text-muted">All medical records granted to you for this patient</p>
+    </div>
+</div>
+
+<!-- Navigation -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <a href="{{ url_for('special_doctor.list_consulting_assignments') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Consulting Assignments
+        </a>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('special_doctor.list_granted_records') }}" class="btn btn-primary">
+            <i class="bi bi-list"></i> All Granted Records
+        </a>
+    </div>
+</div>
+
+<!-- Patient Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-person"></i> Patient Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Patient ID:</strong><br>
+                        {{ patient.id }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Name:</strong><br>
+                        {{ patient.name }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Date of Birth:</strong><br>
+                        {{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else 'Not set' }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Total Granted Records:</strong><br>
+                        <span class="badge bg-primary fs-6">{{ decrypted_records|length }}</span>
+                    </div>
+                </div>
+                {% if patient.demographics %}
+                <hr>
+                <div class="row">
+                    <div class="col-md-12">
+                        <strong>Demographics:</strong><br>
+                        <small class="text-muted">{{ patient.demographics }}</small>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Medical Records -->
+<div class="row">
+    <div class="col-12">
+        {% if decrypted_records %}
+            {% for record_data in decrypted_records %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-file-medical"></i>
+                            <span class="badge bg-{% if record_data.record.record_type == 'diagnosis' %}primary{% elif record_data.record.record_type == 'treatment' %}success{% elif record_data.record.record_type == 'lab_result' %}info{% elif record_data.record.record_type == 'prescription' %}warning{% else %}secondary{% endif %}">
+                                {{ record_data.record.record_type.replace('_', ' ').title() }}
+                            </span>
+                        </h5>
+                        <div>
+                            <small class="text-muted">{{ record_data.record.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                            <a href="{{ url_for('special_doctor.view_granted_record', record_id=record_data.record.id) }}" class="btn btn-sm btn-outline-primary ms-2">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if record_data.data and 'error' not in record_data.data %}
+                        <div class="row">
+                            <div class="col-md-8">
+                                <!-- Main content -->
+                                {% if record_data.data.chief_complaint %}
+                                <div class="mb-2">
+                                    <strong><i class="bi bi-chat-quote"></i> Chief Complaint:</strong>
+                                    <p class="mb-1">{{ record_data.data.chief_complaint }}</p>
+                                </div>
+                                {% endif %}
+
+                                {% if record_data.data.diagnosis %}
+                                <div class="mb-2">
+                                    <strong><i class="bi bi-clipboard-check"></i> Diagnosis:</strong>
+                                    <p class="mb-1">{{ record_data.data.diagnosis }}</p>
+                                </div>
+                                {% endif %}
+
+                                {% if record_data.data.treatment_plan %}
+                                <div class="mb-2">
+                                    <strong><i class="bi bi-prescription2"></i> Treatment Plan:</strong>
+                                    <p class="mb-1">{{ record_data.data.treatment_plan }}</p>
+                                </div>
+                                {% endif %}
+
+                                {% if record_data.data.symptoms %}
+                                <div class="mb-2">
+                                    <strong><i class="bi bi-thermometer-half"></i> Symptoms:</strong>
+                                    <p class="mb-1">{{ record_data.data.symptoms }}</p>
+                                </div>
+                                {% endif %}
+
+                                {% if record_data.data.medications %}
+                                <div class="mb-2">
+                                    <strong><i class="bi bi-capsule"></i> Medications:</strong>
+                                    <p class="mb-1">{{ record_data.data.medications }}</p>
+                                </div>
+                                {% endif %}
+
+                                {% if record_data.data.lab_results %}
+                                <div class="mb-2">
+                                    <strong><i class="bi bi-clipboard-data"></i> Lab Results:</strong>
+                                    <p class="mb-1">{{ record_data.data.lab_results }}</p>
+                                </div>
+                                {% endif %}
+
+                                {% if record_data.data.notes %}
+                                <div class="mb-2">
+                                    <strong><i class="bi bi-journal-text"></i> Notes:</strong>
+                                    <p class="mb-1">{{ record_data.data.notes }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <!-- Sidebar info -->
+                                <div class="border-start ps-3">
+                                    <div class="mb-2">
+                                        <strong>Author:</strong><br>
+                                        <small>{{ record_data.record.author.username }}</small>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Created:</strong><br>
+                                        <small>{{ record_data.record.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                                    </div>
+                                    {% if record_data.access_grant %}
+                                    <div class="mb-2">
+                                        <strong>Granted:</strong><br>
+                                        <small>{{ record_data.access_grant.granted_date.strftime('%Y-%m-%d') }}</small>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Granted By:</strong><br>
+                                        <small>{{ record_data.access_grant.granted_by_user.username }}</small>
+                                    </div>
+                                    {% if record_data.access_grant.reason %}
+                                    <div class="mb-2">
+                                        <strong>Reason:</strong><br>
+                                        <small class="text-muted">{{ record_data.access_grant.reason }}</small>
+                                    </div>
+                                    {% endif %}
+                                    {% endif %}
+                                    
+                                    {% if record_data.data.vital_signs %}
+                                    <div class="mb-2">
+                                        <strong>Vital Signs:</strong><br>
+                                        {% for key, value in record_data.data.vital_signs.items() %}
+                                            <small>{{ key.replace('_', ' ').title() }}: {{ value }}</small><br>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Unable to decrypt this medical record.
+                            {% if record_data.data.error %}
+                                <br><small>{{ record_data.data.error }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Author:</strong> {{ record_data.record.author.username }}<br>
+                                <strong>Created:</strong> {{ record_data.record.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                            </div>
+                            {% if record_data.access_grant %}
+                            <div class="col-md-6">
+                                <strong>Granted:</strong> {{ record_data.access_grant.granted_date.strftime('%Y-%m-%d') }}<br>
+                                <strong>Granted By:</strong> {{ record_data.access_grant.granted_by_user.username }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-file-lock fs-1 text-muted"></i>
+                    <p class="text-muted mt-3">No medical records have been granted for this patient yet.</p>
+                    <a href="{{ url_for('special_doctor.list_consulting_assignments') }}" class="btn btn-primary">
+                        <i class="bi bi-arrow-left"></i> Back to Consulting Assignments
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Timeline Summary -->
+{% if decrypted_records %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-clock-history"></i> Record Timeline</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% for record_data in decrypted_records|sort(attribute='record.timestamp', reverse=true)[:10] %}
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge bg-{% if record_data.record.record_type == 'diagnosis' %}primary{% elif record_data.record.record_type == 'treatment' %}success{% elif record_data.record.record_type == 'lab_result' %}info{% elif record_data.record.record_type == 'prescription' %}warning{% else %}secondary{% endif %} rounded-pill">
+                                {{ record_data.record.record_type[:3].upper() }}
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">{{ record_data.record.record_type.replace('_', ' ').title() }}</h6>
+                            <p class="mb-1">
+                                {% if record_data.data and 'error' not in record_data.data %}
+                                    {% if record_data.data.chief_complaint %}
+                                        {{ record_data.data.chief_complaint[:100] }}...
+                                    {% elif record_data.data.diagnosis %}
+                                        {{ record_data.data.diagnosis[:100] }}...
+                                    {% elif record_data.data.treatment_plan %}
+                                        {{ record_data.data.treatment_plan[:100] }}...
+                                    {% else %}
+                                        Medical record content available
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Encrypted content</span>
+                                {% endif %}
+                            </p>
+                            <small class="text-muted">
+                                {{ record_data.record.timestamp.strftime('%Y-%m-%d %H:%M') }} by {{ record_data.record.author.username }}
+                            </small>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <a href="{{ url_for('special_doctor.view_granted_record', record_id=record_data.record.id) }}" class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %} 

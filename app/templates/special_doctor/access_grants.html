@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}Access Grants - Medical Records System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-key"></i> Access Grants</h2>
+        <p class="text-muted">All medical record access grants received for consultation</p>
+    </div>
+</div>
+
+<!-- Navigation -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <a href="{{ url_for('special_doctor.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('special_doctor.list_granted_records') }}" class="btn btn-primary">
+            <i class="bi bi-file-lock"></i> View Granted Records
+        </a>
+    </div>
+</div>
+
+<!-- Access Grants List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-list"></i> Access Grants 
+                    {% if access_grants %}({{ access_grants.total }}){% endif %}</h5>
+            </div>
+            <div class="card-body">
+                {% if access_grants and access_grants.items %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Grant Date</th>
+                                    <th>Patient</th>
+                                    <th>Record Type</th>
+                                    <th>Granted By</th>
+                                    <th>Reason</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for grant in access_grants.items %}
+                                <tr>
+                                    <td>{{ grant.granted_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <strong>{{ grant.medical_record.patient.name }}</strong><br>
+                                        <small class="text-muted">ID: {{ grant.medical_record.patient.id }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if grant.medical_record.record_type == 'diagnosis' %}primary{% elif grant.medical_record.record_type == 'treatment' %}success{% elif grant.medical_record.record_type == 'lab_result' %}info{% elif grant.medical_record.record_type == 'prescription' %}warning{% else %}secondary{% endif %}">
+                                            {{ grant.medical_record.record_type.replace('_', ' ').title() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{ grant.granted_by_user.username }}<br>
+                                        <small class="text-muted">{{ grant.granted_by_user.role.title() }}</small>
+                                    </td>
+                                    <td>
+                                        {% if grant.reason %}
+                                            {{ grant.reason[:50] }}{% if grant.reason|length > 50 %}...{% endif %}
+                                        {% else %}
+                                            <span class="text-muted">No reason provided</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('special_doctor.view_granted_record', record_id=grant.medical_record.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> View Record
+                                        </a>
+                                        <a href="{{ url_for('special_doctor.patient_granted_records', patient_id=grant.medical_record.patient.id) }}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-person"></i> Patient
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if access_grants.pages > 1 %}
+                    <nav aria-label="Access grants pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if access_grants.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('special_doctor.list_access_grants', page=access_grants.prev_num) }}">Previous</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for page_num in access_grants.iter_pages() %}
+                                {% if page_num %}
+                                    {% if page_num != access_grants.page %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('special_doctor.list_access_grants', page=page_num) }}">{{ page_num }}</a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ page_num }}</span>
+                                        </li>
+                                    {% endif %}
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if access_grants.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('special_doctor.list_access_grants', page=access_grants.next_num) }}">Next</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-key fs-1 text-muted"></i>
+                        <p class="text-muted mt-3">No access grants received yet.</p>
+                        <p class="text-muted">Curing doctors can grant you access to patient medical records for consultation.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grant Statistics -->
+{% if access_grants and access_grants.items %}
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary">{{ access_grants.total }}</h4>
+                <p class="text-muted">Total Access Grants</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success">
+                    {% set patient_ids = [] %}
+                    {% for grant in access_grants.items %}
+                        {% if grant.medical_record.patient.id not in patient_ids %}
+                            {% set _ = patient_ids.append(grant.medical_record.patient.id) %}
+                        {% endif %}
+                    {% endfor %}
+                    {{ patient_ids|length }}
+                </h4>
+                <p class="text-muted">Unique Patients</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-info">
+                    {% set doctor_ids = [] %}
+                    {% for grant in access_grants.items %}
+                        {% if grant.granted_by_user.id not in doctor_ids %}
+                            {% set _ = doctor_ids.append(grant.granted_by_user.id) %}
+                        {% endif %}
+                    {% endfor %}
+                    {{ doctor_ids|length }}
+                </h4>
+                <p class="text-muted">Granting Doctors</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <a href="{{ url_for('special_doctor.list_consulting_assignments') }}" class="btn btn-outline-warning">
+                    <i class="bi bi-person-check"></i><br>
+                    Consultations
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Grant Details by Doctor -->
+{% if access_grants and access_grants.items %}
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-people"></i> Grants by Doctor</h5>
+            </div>
+            <div class="card-body">
+                {% set doctors_grants = {} %}
+                                                {% for grant in access_grants.items %}
+                    {% if grant.granted_by_user.username not in doctors_grants %}
+                        {% set _ = doctors_grants.update({grant.granted_by_user.username: []}) %}
+                    {% endif %}
+                    {% set _ = doctors_grants[grant.granted_by_user.username].append(grant) %}
+                {% endfor %}
+                
+                {% for doctor, grants in doctors_grants.items() %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <strong>{{ doctor }}</strong>
+                        <small class="text-muted d-block">{{ grants[0].granted_by_user.role.title() }}</small>
+                    </div>
+                    <span class="badge bg-primary">{{ grants|length }} grants</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up"></i> Record Types</h5>
+            </div>
+            <div class="card-body">
+                {% set record_types = {} %}
+                {% for grant in access_grants.items %}
+                    {% set record_type = grant.medical_record.record_type %}
+                    {% if record_type not in record_types %}
+                        {% set _ = record_types.update({record_type: 0}) %}
+                    {% endif %}
+                    {% set _ = record_types.update({record_type: record_types[record_type] + 1}) %}
+                {% endfor %}
+                
+                {% for record_type, count in record_types.items() %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <span class="badge bg-{% if record_type == 'diagnosis' %}primary{% elif record_type == 'treatment' %}success{% elif record_type == 'lab_result' %}info{% elif record_type == 'prescription' %}warning{% else %}secondary{% endif %}">
+                            {{ record_type.replace('_', ' ').title() }}
+                        </span>
+                    </div>
+                    <span class="badge bg-light text-dark">{{ count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Grant Activity -->
+{% if access_grants and access_grants.items %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-clock-history"></i> Recent Grant Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% for grant in access_grants.items[:10] %}
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <span class="badge bg-{% if grant.medical_record.record_type == 'diagnosis' %}primary{% elif grant.medical_record.record_type == 'treatment' %}success{% elif grant.medical_record.record_type == 'lab_result' %}info{% elif grant.medical_record.record_type == 'prescription' %}warning{% else %}secondary{% endif %} rounded-pill">
+                                {{ grant.medical_record.record_type[:3].upper() }}
+                            </span>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Access granted to {{ grant.medical_record.patient.name }}'s {{ grant.medical_record.record_type.replace('_', ' ') }}</h6>
+                            <p class="mb-1">
+                                <strong>Granted by:</strong> {{ grant.granted_by_user.username }}
+                                {% if grant.reason %}
+                                    <br><strong>Reason:</strong> {{ grant.reason }}
+                                {% endif %}
+                            </p>
+                            <small class="text-muted">{{ grant.granted_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <a href="{{ url_for('special_doctor.view_granted_record', record_id=grant.medical_record.id) }}" class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <a href="{{ url_for('special_doctor.list_granted_records') }}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-file-lock"></i><br>
+                    View Records
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <a href="{{ url_for('special_doctor.list_consulting_assignments') }}" class="btn btn-outline-success w-100">
+                    <i class="bi bi-person-check"></i><br>
+                    Consultations
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-info w-100">
+                    <i class="bi bi-calendar-event"></i><br>
+                    Appointments
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <a href="{{ url_for('special_doctor.dashboard') }}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-house"></i><br>
+                    Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
