@@ -107,11 +107,7 @@
                                         </span>
                                     </td>
                                     <td>{{ appointment.notes[:30] if appointment.notes else '' }}{% if appointment.notes and appointment.notes|length > 30 %}...{% endif %}</td>
-                                    <td>
-                                        <a href="{{ url_for('special_doctor.patient_granted_records', patient_id=appointment.patient.id) }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-file-medical"></i>
-                                        </a>
-                                    </td>
+
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -235,19 +231,14 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <a href="{{ url_for('special_doctor.list_access_grants') }}" class="btn btn-outline-primary w-100 mb-2">
                             <i class="bi bi-file-lock"></i><br>
                             Granted Records
                         </a>
                     </div>
-                    <div class="col-md-4">
-                        <a href="{{ url_for('special_doctor.list_consulting_assignments') }}" class="btn btn-outline-success w-100 mb-2">
-                            <i class="bi bi-person-check"></i><br>
-                            Consultations
-                        </a>
-                    </div>
-                    <div class="col-md-4">
+
+                    <div class="col-md-6">
                         <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-info w-100 mb-2">
                             <i class="bi bi-calendar-event"></i><br>
                             Appointments

@@ -103,13 +103,11 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <a href="{{ url_for('special_doctor.patient_granted_records', patient_id=appointment.patient.id) }}" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-file-lock"></i> Records
-                                        </a>
+
                                         {% if appointment.status == 'scheduled' %}
                                         <div class="btn-group">
                                             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="bi bi-three-dots"></i>
+                                                Appointments actions
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end">
                                                 <li><h6 class="dropdown-header">Appointment Actions</h6></li>
@@ -262,83 +260,12 @@
             </div>
         </div>
         
-        <!-- Quick Actions -->
-        <div class="card mt-3">
-            <div class="card-header">
-                <h5><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <a href="{{ url_for('special_doctor.list_access_grants') }}" class="btn btn-outline-primary w-100 mb-2">
-                    <i class="bi bi-file-lock"></i> Granted Records
-                </a>
-                <a href="{{ url_for('special_doctor.list_consulting_assignments') }}" class="btn btn-outline-success w-100 mb-2">
-                    <i class="bi bi-person-check"></i> Consultations
-                </a>
-                <a href="{{ url_for('special_doctor.dashboard') }}" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-house"></i> Dashboard
-                </a>
-            </div>
-        </div>
+
     </div>
 </div>
 {% endif %}
 
-<!-- Week Overview -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-calendar-week"></i> Week Overview</h5>
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col">
-                        <h6>Mon</h6>
-                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
-                            --
-                        </a>
-                    </div>
-                    <div class="col">
-                        <h6>Tue</h6>
-                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
-                            --
-                        </a>
-                    </div>
-                    <div class="col">
-                        <h6>Wed</h6>
-                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
-                            --
-                        </a>
-                    </div>
-                    <div class="col">
-                        <h6>Thu</h6>
-                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
-                            --
-                        </a>
-                    </div>
-                    <div class="col">
-                        <h6>Fri</h6>
-                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
-                            --
-                        </a>
-                    </div>
-                    <div class="col">
-                        <h6>Sat</h6>
-                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
-                            --
-                        </a>
-                    </div>
-                    <div class="col">
-                        <h6>Sun</h6>
-                        <a href="{{ url_for('special_doctor.list_appointments') }}" class="btn btn-outline-secondary btn-sm w-100">
-                            --
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 {% endblock %}
 
 {% block extra_js %}

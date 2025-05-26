@@ -116,9 +116,6 @@
                             <a class="nav-link" href="{{ url_for('special_doctor.list_access_grants') }}">Granted Records</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('special_doctor.list_consulting_assignments') }}">Consultations</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('special_doctor.list_appointments') }}">Appointments</a>
                         </li>
                     {% elif current_user.role == 'patient' %}
@@ -154,7 +151,7 @@
             {% else %}
             <div class="navbar-nav">
                 <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
-                <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+
             </div>
             {% endif %}
         </div>
@@ -209,7 +206,7 @@
     <!-- Footer -->
     <footer class="bg-light text-center text-muted py-3 mt-5">
         <div class="container">
-            <p>&copy; 2024 Medical Records System. Built with Flask & Bootstrap 5.</p>
+            <p>&copy; 2025 Medical Records System. Built By Ali Kamali and Emre Eminan</p>
             <p><small>DES Key: {{ config.DES_KEY.decode() }} | RSA Keys: {{ config.RSA_PRIVATE_KEY_PATH }}, {{ config.RSA_PUBLIC_KEY_PATH }}</small></p>
         </div>
     </footer>
