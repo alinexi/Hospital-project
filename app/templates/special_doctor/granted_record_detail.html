@@ -66,82 +66,74 @@
             </div>
             <div class="card-body">
                 {% if decrypted_data and 'error' not in decrypted_data %}
-                    {% if decrypted_data.chief_complaint %}
-                    <div class="mb-3">
-                        <h6><i class="bi bi-chat-quote"></i> Chief Complaint</h6>
-                        <div class="alert alert-light">{{ decrypted_data.chief_complaint }}</div>
-                    </div>
-                    {% endif %}
-
-                    {% if decrypted_data.symptoms %}
-                    <div class="mb-3">
-                        <h6><i class="bi bi-thermometer-half"></i> Symptoms</h6>
-                        <div class="alert alert-info">{{ decrypted_data.symptoms }}</div>
-                    </div>
-                    {% endif %}
-
-                    {% if decrypted_data.diagnosis %}
-                    <div class="mb-3">
-                        <h6><i class="bi bi-clipboard-check"></i> Diagnosis</h6>
-                        <div class="alert alert-primary">{{ decrypted_data.diagnosis }}</div>
-                    </div>
-                    {% endif %}
-
-                    {% if decrypted_data.treatment_plan %}
-                    <div class="mb-3">
-                        <h6><i class="bi bi-prescription2"></i> Treatment Plan</h6>
-                        <div class="alert alert-success">{{ decrypted_data.treatment_plan }}</div>
-                    </div>
-                    {% endif %}
-
-                    {% if decrypted_data.medications %}
-                    <div class="mb-3">
-                        <h6><i class="bi bi-capsule"></i> Medications</h6>
-                        <div class="alert alert-warning">{{ decrypted_data.medications }}</div>
-                    </div>
-                    {% endif %}
-
-                    {% if decrypted_data.lab_results %}
-                    <div class="mb-3">
-                        <h6><i class="bi bi-clipboard-data"></i> Lab Results</h6>
-                        <div class="alert alert-info">{{ decrypted_data.lab_results }}</div>
-                    </div>
-                    {% endif %}
-
-                    {% if decrypted_data.vital_signs %}
-                    <div class="mb-3">
-                        <h6><i class="bi bi-heart-pulse"></i> Vital Signs</h6>
-                        <div class="alert alert-light">
-                            {% for key, value in decrypted_data.vital_signs.items() %}
-                                <strong>{{ key.replace('_', ' ').title() }}:</strong> {{ value }}<br>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if decrypted_data.notes %}
-                    <div class="mb-3">
-                        <h6><i class="bi bi-journal-text"></i> Additional Notes</h6>
-                        <div class="alert alert-secondary">{{ decrypted_data.notes }}</div>
-                    </div>
-                    {% endif %}
-
-                    {% if decrypted_data.follow_up %}
-                    <div class="mb-3">
-                        <h6><i class="bi bi-calendar-plus"></i> Follow-up Instructions</h6>
-                        <div class="alert alert-warning">{{ decrypted_data.follow_up }}</div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Display other fields generically -->
-                    {% for key, value in decrypted_data.items() %}
-                        {% if key not in ['chief_complaint', 'symptoms', 'diagnosis', 'treatment_plan', 'medications', 'lab_results', 'vital_signs', 'notes', 'follow_up'] and value %}
+                    <div id="record-content">
+                        {% if decrypted_data.chief_complaint %}
                         <div class="mb-3">
-                            <h6><i class="bi bi-info-circle"></i> {{ key.replace('_', ' ').title() }}</h6>
-                            <div class="alert alert-light">{{ value }}</div>
+                            <h6><i class="bi bi-chat-quote"></i> Chief Complaint</h6>
+                            <div class="alert alert-light">{{ decrypted_data.chief_complaint }}</div>
                         </div>
                         {% endif %}
-                    {% endfor %}
+
+                        {% if decrypted_data.symptoms %}
+                        <div class="mb-3">
+                            <h6><i class="bi bi-thermometer-half"></i> Symptoms</h6>
+                            <div class="alert alert-info">{{ decrypted_data.symptoms }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.diagnosis %}
+                        <div class="mb-3">
+                            <h6><i class="bi bi-clipboard-check"></i> Diagnosis</h6>
+                            <div class="alert alert-primary">{{ decrypted_data.diagnosis }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.treatment_plan %}
+                        <div class="mb-3">
+                            <h6><i class="bi bi-prescription2"></i> Treatment Plan</h6>
+                            <div class="alert alert-success">{{ decrypted_data.treatment_plan }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.medications %}
+                        <div class="mb-3">
+                            <h6><i class="bi bi-capsule"></i> Medications</h6>
+                            <div class="alert alert-warning">{{ decrypted_data.medications }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.lab_results %}
+                        <div class="mb-3">
+                            <h6><i class="bi bi-clipboard-data"></i> Lab Results</h6>
+                            <div class="alert alert-info">{{ decrypted_data.lab_results }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.vital_signs %}
+                        <div class="mb-3">
+                            <h6><i class="bi bi-heart-pulse"></i> Vital Signs</h6>
+                            <div class="alert alert-light">
+                                {% for key, value in decrypted_data.vital_signs.items() %}
+                                    <strong>{{ key.replace('_', ' ').title() }}:</strong> {{ value }}<br>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.notes %}
+                        <div class="mb-3">
+                            <h6><i class="bi bi-journal-text"></i> Additional Notes</h6>
+                            <div class="alert alert-secondary">{{ decrypted_data.notes }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if decrypted_data.follow_up %}
+                        <div class="mb-3">
+                            <h6><i class="bi bi-calendar-plus"></i> Follow-up Instructions</h6>
+                            <div class="alert alert-warning">{{ decrypted_data.follow_up }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
                 {% else %}
                     <div class="alert alert-danger">
                         <i class="bi bi-exclamation-triangle"></i>
@@ -235,4 +227,17 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Ensure record content persists
+    document.addEventListener('DOMContentLoaded', function() {
+        const recordContent = document.getElementById('record-content');
+        if (recordContent) {
+            // Store the content in sessionStorage
+            sessionStorage.setItem('recordContent', recordContent.innerHTML);
+        }
+    });
+</script>
 {% endblock %} 
