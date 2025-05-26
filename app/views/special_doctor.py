@@ -263,6 +263,34 @@ def list_appointments():
                              appointments=[],
                              selected_date=datetime.now().date())
 
+@bp.route('/appointments/<int:appointment_id>/update-status', methods=['POST'])
+@login_required
+@role_required('special_doctor')
+def update_appointment_status(appointment_id):
+    """Update the status of an appointment"""
+    try:
+        appointment = Appointment.query.get_or_404(appointment_id)
+        
+        # Verify the appointment belongs to this special doctor
+        if appointment.doctor_id != current_user.id:
+            flash('You do not have permission to update this appointment.', 'danger')
+            return redirect(url_for('special_doctor.list_appointments'))
+        
+        new_status = request.form.get('status')
+        if new_status not in ['scheduled', 'in_progress', 'completed', 'cancelled']:
+            flash('Invalid appointment status.', 'danger')
+            return redirect(url_for('special_doctor.list_appointments'))
+        
+        appointment.status = new_status
+        db.session.commit()
+        
+        flash(f'Appointment status updated to {new_status.replace("_", " ").title()}.', 'success')
+        return redirect(url_for('special_doctor.list_appointments'))
+    except Exception as e:
+        current_app.logger.error(f"Update appointment status error: {str(e)}")
+        flash('Error updating appointment status.', 'danger')
+        return redirect(url_for('special_doctor.list_appointments'))
+
 # Route removed - access_grants page deleted and functionality moved to granted_records
 
 # TODO: Students can extend this section with additional special doctor functionality:

@@ -18,7 +18,7 @@
         </a>
     </div>
     <div class="col-md-6 text-end">
-        <a href="{{ url_for('special_doctor.list_granted_records') }}" class="btn btn-primary">
+        <a href="{{ url_for('special_doctor.list_access_grants') }}" class="btn btn-primary">
             <i class="bi bi-file-lock"></i> View All Granted Records
         </a>
     </div>
@@ -144,7 +144,7 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body">
-                <a href="{{ url_for('special_doctor.list_granted_records') }}" class="btn btn-outline-info">
+                <a href="{{ url_for('special_doctor.list_access_grants') }}" class="btn btn-outline-info">
                     <i class="bi bi-file-lock"></i><br>
                     All Records
                 </a>
@@ -173,22 +173,24 @@
             </div>
             <div class="card-body">
                 <div class="timeline">
-                    {% for assignment in consulting_assignments|sort(attribute='latest_grant_date', reverse=true)[:5] %}
-                    <div class="d-flex mb-3">
-                        <div class="flex-shrink-0">
-                            <span class="badge bg-primary rounded-pill">{{ loop.index }}</span>
+                    {% for assignment in consulting_assignments|sort(attribute='latest_grant_date', reverse=true) %}
+                        {% if loop.index <= 5 %}
+                        <div class="d-flex mb-3">
+                            <div class="flex-shrink-0">
+                                <span class="badge bg-primary rounded-pill">{{ loop.index }}</span>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1">{{ assignment.patient.name }}</h6>
+                                <p class="mb-1 text-muted">{{ assignment.granted_records_count }} record(s) granted</p>
+                                <small class="text-muted">Latest grant: {{ assignment.latest_grant_date.strftime('%Y-%m-%d %H:%M') if assignment.latest_grant_date else 'N/A' }}</small>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <a href="{{ url_for('special_doctor.patient_granted_records', patient_id=assignment.patient.id) }}" class="btn btn-sm btn-outline-primary">
+                                    View
+                                </a>
+                            </div>
                         </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="mb-1">{{ assignment.patient.name }}</h6>
-                            <p class="mb-1 text-muted">{{ assignment.granted_records_count }} record(s) granted</p>
-                            <small class="text-muted">Latest grant: {{ assignment.latest_grant_date.strftime('%Y-%m-%d %H:%M') if assignment.latest_grant_date else 'N/A' }}</small>
-                        </div>
-                        <div class="flex-shrink-0">
-                            <a href="{{ url_for('special_doctor.patient_granted_records', patient_id=assignment.patient.id) }}" class="btn btn-sm btn-outline-primary">
-                                View
-                            </a>
-                        </div>
-                    </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>

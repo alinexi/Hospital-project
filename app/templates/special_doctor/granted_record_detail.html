@@ -13,7 +13,7 @@
 <!-- Navigation -->
 <div class="row mb-4">
     <div class="col-md-6">
-        <a href="{{ url_for('special_doctor.list_granted_records') }}" class="btn btn-outline-secondary">
+        <a href="{{ url_for('special_doctor.list_access_grants') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Back to Granted Records
         </a>
     </div>
@@ -225,7 +225,7 @@
                 <a href="{{ url_for('special_doctor.patient_granted_records', patient_id=record.patient.id) }}" class="btn btn-primary w-100 mb-2">
                     <i class="bi bi-person"></i> View All Patient Records
                 </a>
-                <a href="{{ url_for('special_doctor.list_granted_records') }}" class="btn btn-outline-secondary w-100 mb-2">
+                <a href="{{ url_for('special_doctor.list_access_grants') }}" class="btn btn-outline-secondary w-100 mb-2">
                     <i class="bi bi-list"></i> Back to Granted Records
                 </a>
                 <a href="{{ url_for('special_doctor.list_consulting_assignments') }}" class="btn btn-outline-info w-100">

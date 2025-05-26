@@ -62,7 +62,7 @@
 
 #### **Special Doctor** (10% Complete)
 - `special_doctor/dashboard.html` ✅
-- `special_doctor/list_granted_records.html` ❌ **MISSING**
+- `special_doctor/list_access_grants.html` ❌ **MISSING**
 - `special_doctor/view_granted_record.html` ❌ **MISSING**
 - `special_doctor/list_consulting_assignments.html` ❌ **MISSING**
 - `special_doctor/list_appointments.html` ❌ **MISSING**
@@ -87,7 +87,7 @@
 
 ### **Medium Priority** (Enhanced Features)
 4. **Special Doctor**:
-   - `list_granted_records.html` - View accessible records
+   - `list_access_grants.html` - View accessible records
    - `view_granted_record.html` - Read consultation records
 
 5. **Chief Doctor**:

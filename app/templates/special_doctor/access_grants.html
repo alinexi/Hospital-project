@@ -67,7 +67,6 @@
                                         {% for grant in record.access_grants %}
                                             {% if grant.granted_to_user_id == current_user.id %}
                                                 {{ grant.granted_date.strftime('%Y-%m-%d') }}
-                                                {% break %}
                                             {% endif %}
                                         {% endfor %}
                                     </td>
